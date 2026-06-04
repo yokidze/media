@@ -1,0 +1,10 @@
+(node:11288) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+npm error Lifecycle script `dev` failed with error:
+npm error code 4294967295
+npm error path C:\Users\yoki\Documents\НОВЫЙ ПРОЕКТ — копия\apps\web
+npm error workspace @college-archive/web@1.0.0
+npm error location C:\Users\yoki\Documents\НОВЫЙ ПРОЕКТ — копия\apps\web
+npm error command failed
+npm error command C:\Windows\system32\cmd.exe /d /s /c next dev -p 3000

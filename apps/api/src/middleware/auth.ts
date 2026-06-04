@@ -1,0 +1,58 @@
+﻿import type { NextFunction, Request, Response } from 'express';
+import { env } from '../config/env.js';
+import { unauthorized } from '../common/errors.js';
+import { verifyAccessToken } from '../lib/jwt.js';
+
+const readToken = (req: Request): string | null => {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.slice(7);
+  }
+
+  if (req.cookies?.[env.ACCESS_TOKEN_COOKIE_NAME]) {
+    return req.cookies[env.ACCESS_TOKEN_COOKIE_NAME] as string;
+  }
+
+  return null;
+};
+
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction): void => {
+  const token = readToken(req);
+  if (!token) {
+    next();
+    return;
+  }
+
+  try {
+    const payload = verifyAccessToken(token);
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      roles: payload.roles
+    };
+  } catch {
+    req.user = undefined;
+  }
+
+  next();
+};
+
+export const requireAuth = (req: Request, _res: Response, next: NextFunction): void => {
+  const token = readToken(req);
+  if (!token) {
+    next(unauthorized());
+    return;
+  }
+
+  try {
+    const payload = verifyAccessToken(token);
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      roles: payload.roles
+    };
+    next();
+  } catch {
+    next(unauthorized('Invalid or expired token'));
+  }
+};

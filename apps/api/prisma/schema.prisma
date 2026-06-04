@@ -1,0 +1,315 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  GUEST
+  STAFF
+  ADMIN
+}
+
+enum MaterialType {
+  DOCUMENT
+  ARTICLE
+  NEWSPAPER
+  BOOKLET
+  IMAGE
+  VIDEO
+  AUDIO
+  SCAN
+  OTHER
+}
+
+enum ContentSection {
+  ARTICLE
+  TV_STORY
+  EVENT_PHOTO
+}
+
+enum AccessLevel {
+  PUBLIC
+  STAFF_ONLY
+  HIDDEN
+}
+
+enum ArchiveStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum StorageDriver {
+  LOCAL
+  S3
+}
+
+model Role {
+  id          String     @id @default(uuid())
+  name        RoleName   @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userRoles   UserRole[]
+  permissions AccessPermission[]
+}
+
+model User {
+  id                 String        @id @default(uuid())
+  email              String        @unique
+  passwordHash       String
+  fullName           String
+  jobTitle           String?
+  department         String?
+  phone              String?
+  profilePhotoUrl    String?
+  mustChangePassword Boolean       @default(true)
+  isActive           Boolean       @default(true)
+  preferredLanguage  String        @default("ru")
+  lastLoginAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  profile            Profile?
+  userRoles          UserRole[]
+  sessions           Session[]
+  createdArchive     ArchiveItem[] @relation("ArchiveItemCreatedBy")
+  updatedArchive     ArchiveItem[] @relation("ArchiveItemUpdatedBy")
+  favorites          Favorite[]
+  history            ViewHistory[]
+  auditLogs          AuditLog[]
+
+  @@index([email])
+}
+
+model Profile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  fullName   String
+  position   String?
+  department String?
+  phone      String?
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([fullName])
+}
+
+model UserRole {
+  userId     String
+  roleId     String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String
+  refreshTokenHash String
+  expiresAt        DateTime
+  userAgent        String?
+  ipAddress        String?
+  createdAt        DateTime @default(now())
+  revokedAt        DateTime?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Author {
+  id        String        @id @default(uuid())
+  fullName  String
+  bio       String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  items     ArchiveItem[]
+
+  @@index([fullName])
+}
+
+model Category {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
+  sortOrder   Int          @default(0)
+  parentId    String?
+  parent      Category?    @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[]   @relation("CategoryTree")
+  items       ArchiveItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([name])
+  @@index([parentId])
+}
+
+model Tag {
+  id        String           @id @default(uuid())
+  name      String
+  slug      String           @unique
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  items     ArchiveItemTag[]
+
+  @@index([name])
+}
+
+model ArchiveItem {
+  id              String            @id @default(uuid())
+  slug            String            @unique
+  title           String
+  description     String
+  materialType    MaterialType
+  contentSection  ContentSection    @default(ARTICLE)
+  accessLevel     AccessLevel       @default(PUBLIC)
+  status          ArchiveStatus     @default(DRAFT)
+  language        String            @default("ru")
+  keywords        String[]
+  alphabetLetter  String?
+  archiveYear     Int?
+  academicYear    String?
+  issueNumber     String?
+  publicationDate DateTime?
+  uploadedAt      DateTime          @default(now())
+  textContent     String?
+  viewsCount      Int               @default(0)
+  downloadsCount  Int               @default(0)
+  categoryId      String?
+  authorId        String?
+  createdById     String?
+  updatedById     String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+  category        Category?         @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  author          Author?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdBy       User?             @relation("ArchiveItemCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy       User?             @relation("ArchiveItemUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  files           ArchiveFile[]
+  tags            ArchiveItemTag[]
+  favorites       Favorite[]
+  history         ViewHistory[]
+  permissions     AccessPermission[]
+
+  @@index([title])
+  @@index([materialType])
+  @@index([contentSection])
+  @@index([accessLevel])
+  @@index([status])
+  @@index([archiveYear])
+  @@index([publicationDate])
+  @@index([createdAt])
+}
+
+model ArchiveItemTag {
+  archiveItemId String
+  tagId         String
+  archiveItem   ArchiveItem @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([archiveItemId, tagId])
+  @@index([tagId])
+}
+
+model ArchiveFile {
+  id           String       @id @default(uuid())
+  archiveItemId String
+  fileName     String
+  originalName String
+  relativePath String
+  storageDriver StorageDriver @default(LOCAL)
+  mimeType     String
+  extension    String
+  sizeBytes    Int
+  checksum     String?
+  previewPath  String?
+  isPrimary    Boolean      @default(false)
+  sortOrder    Int          @default(0)
+  width        Int?
+  height       Int?
+  durationSec  Int?
+  pageCount    Int?
+  metadataJson Json?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  archiveItem  ArchiveItem  @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+
+  @@index([archiveItemId])
+  @@index([mimeType])
+  @@index([createdAt])
+}
+
+model AccessPermission {
+  id            String      @id @default(uuid())
+  archiveItemId String
+  roleId        String
+  canView       Boolean     @default(true)
+  canDownload   Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  archiveItem   ArchiveItem @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+  role          Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([archiveItemId, roleId])
+  @@index([roleId])
+}
+
+model Favorite {
+  id            String      @id @default(uuid())
+  userId        String
+  archiveItemId String
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  archiveItem   ArchiveItem @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, archiveItemId])
+  @@index([archiveItemId])
+}
+
+model ViewHistory {
+  id            String      @id @default(uuid())
+  userId        String?
+  archiveItemId String
+  viewedAt      DateTime    @default(now())
+  ipAddress     String?
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  archiveItem   ArchiveItem @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([archiveItemId])
+  @@index([viewedAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([createdAt])
+}
+
+model StatisticsDaily {
+  id             String   @id @default(uuid())
+  date           DateTime @unique
+  totalViews     Int      @default(0)
+  totalDownloads Int      @default(0)
+  newItems       Int      @default(0)
+  totalFiles     Int      @default(0)
+  updatedAt      DateTime @updatedAt
+}
