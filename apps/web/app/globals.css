@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 :root {
+  --font-manrope: "Segoe UI", "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-merriweather: Georgia, "Times New Roman", serif;
   --bg: #f3f6fb;
   --surface: #ffffff;
   --surface-muted: #eef3f9;

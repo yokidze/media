@@ -1,14 +1,10 @@
 ﻿import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Manrope, Merriweather } from 'next/font/google';
 import './globals.css';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { LanguageProvider } from '../components/LanguageProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
-
-const manrope = Manrope({ subsets: ['latin', 'cyrillic'], variable: '--font-manrope' });
-const merriweather = Merriweather({ subsets: ['latin', 'cyrillic'], variable: '--font-merriweather', weight: ['300', '400', '700'] });
 
 export const metadata: Metadata = {
   title: 'Polytech медиа архив',
@@ -32,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>): React.JSX.Element {
   return (
-    <html lang="ru" className={`${manrope.variable} ${merriweather.variable}`} suppressHydrationWarning>
+    <html lang="ru" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
