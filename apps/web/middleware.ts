@@ -13,6 +13,8 @@ const clearAuthCookies = (response: NextResponse): void => {
 const hasAuthCookies = (request: NextRequest): boolean =>
   request.cookies.has(cookieNames.access) || request.cookies.has(cookieNames.refresh);
 
+const hasRefreshCookie = (request: NextRequest): boolean => request.cookies.has(cookieNames.refresh);
+
 const isSessionValid = async (request: NextRequest): Promise<boolean> => {
   try {
     const cookieHeader = request.headers.get('cookie');
@@ -62,6 +64,10 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const valid = await isSessionValid(request);
   if (valid) {
+    return NextResponse.next();
+  }
+
+  if (hasRefreshCookie(request)) {
     return NextResponse.next();
   }
 
