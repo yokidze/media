@@ -6,6 +6,8 @@ import { toSlug } from '../src/common/slug.js';
 const prisma = new PrismaClient();
 
 const createTemporaryPassword = (): string => `${randomBytes(18).toString('base64url')}A1!`;
+const seedAdminEmail = process.env.SEED_ADMIN_EMAIL || 'polytech@admin.com';
+const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD || 'adminpolytech';
 
 const resolveContentSection = (materialType: MaterialType): ContentSection => {
   if (materialType === MaterialType.VIDEO) return ContentSection.TV_STORY;
@@ -21,16 +23,16 @@ async function main(): Promise<void> {
     prisma.role.upsert({ where: { name: RoleName.ADMIN }, update: {}, create: { name: RoleName.ADMIN, description: 'Администратор системы' } })
   ]);
 
-  const plainAdminPassword = process.env.SEED_ADMIN_PASSWORD || createTemporaryPassword();
+  const plainAdminPassword = seedAdminPassword;
   const plainStaffPassword = process.env.SEED_STAFF_PASSWORD || createTemporaryPassword();
   const adminPassword = await argon2.hash(plainAdminPassword);
   const staffPassword = await argon2.hash(plainStaffPassword);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@college.local' },
+    where: { email: seedAdminEmail },
     update: { fullName: 'Администратор системы', isActive: true, mustChangePassword: false },
     create: {
-      email: 'admin@college.local',
+      email: seedAdminEmail,
       passwordHash: adminPassword,
       fullName: 'Администратор системы',
       isActive: true,
@@ -39,6 +41,11 @@ async function main(): Promise<void> {
         create: [{ roleId: roles[2].id }, { roleId: roles[1].id }]
       }
     }
+  });
+
+  await prisma.user.update({
+    where: { id: admin.id },
+    data: { passwordHash: adminPassword, isActive: true, mustChangePassword: false }
   });
 
   const staff = await prisma.user.upsert({
@@ -345,9 +352,9 @@ async function main(): Promise<void> {
   });
 
   console.log('Seed completed.');
-  console.log(`Admin: admin@college.local / ${plainAdminPassword}`);
+  console.log(`Admin: ${seedAdminEmail} / ${plainAdminPassword}`);
   console.log(`Staff: staff@college.local / ${plainStaffPassword}`);
-  console.log('If these users already existed, their passwords were not changed by seed.');
+  console.log('Admin password is reset from SEED_ADMIN_PASSWORD every time seed runs.');
 }
 
 main()
