@@ -59,6 +59,8 @@ categoriesRouter.post(
     const category = await prisma.category.create({
       data: {
         name: normalizedName,
+        nameRu: req.body.nameRu?.trim() || null,
+        nameKaz: req.body.nameKaz?.trim() || null,
         slug: normalizedSlug,
         description: req.body.description,
         parentId: req.body.parentId ?? null,
@@ -110,6 +112,8 @@ categoriesRouter.patch(
       data: {
         ...req.body,
         name: nextName,
+        nameRu: typeof req.body.nameRu === 'string' ? req.body.nameRu.trim() : req.body.nameRu,
+        nameKaz: typeof req.body.nameKaz === 'string' ? req.body.nameKaz.trim() : req.body.nameKaz,
         slug: nextSlug
       }
     });

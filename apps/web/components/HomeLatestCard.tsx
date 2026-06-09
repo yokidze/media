@@ -9,7 +9,8 @@ import { withClientApiPath } from '@/lib/config';
 const PLACEHOLDER_STYLES: Record<ArchiveItem['contentSection'], { bg: string; accent: string }> = {
   ARTICLE: { bg: 'from-blue-50 via-slate-50 to-white', accent: 'text-blue-700' },
   TV_STORY: { bg: 'from-rose-50 via-slate-50 to-white', accent: 'text-rose-700' },
-  EVENT_PHOTO: { bg: 'from-emerald-50 via-slate-50 to-white', accent: 'text-emerald-700' }
+  EVENT_PHOTO: { bg: 'from-emerald-50 via-slate-50 to-white', accent: 'text-emerald-700' },
+  METHODICAL_AUTHOR_PROGRAM: { bg: 'from-amber-50 via-slate-50 to-white', accent: 'text-amber-700' }
 };
 
 function MaterialIcon({ section }: { section: ArchiveItem['contentSection'] }): React.JSX.Element {

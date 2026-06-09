@@ -1,94 +1,236 @@
-﻿# Deployment Guide
+# Развертывание
 
-## 1. Production Preparation
-1. Copy env file:
-   - `cp .env.example .env` (Linux/macOS)
-2. Set strong secrets:
-   - `JWT_ACCESS_SECRET`
-   - `JWT_REFRESH_SECRET`
-3. Set production URLs:
-   - `APP_ORIGIN`
-   - `NEXT_PUBLIC_SITE_URL`
-4. Set external PostgreSQL connection:
-   - `DATABASE_URL`
-   - (optional) `DIRECT_DATABASE_URL` for Prisma CLI/migrations when pooled URLs are used
+Подробная версия: [Полная документация и справочник](project-reference.md).
 
-## 2. Deploy with Docker Compose
+## Требования production
+
+- Linux-сервер.
+- Node.js `>=20.11.0`.
+- PostgreSQL 16+.
+- npm.
+- Reverse proxy с HTTPS.
+- Постоянное хранилище для `storage`.
+- Настроенные backup-и БД и файлов.
+
+## Подготовка окружения
+
 ```bash
-docker compose pull
-docker compose up -d --build
+cp .env.server.example .env
 ```
 
-Services:
-- `api`: backend API
-- `web`: Next.js frontend
-- `minio`: optional S3-compatible storage
-- `postgres`: optional local DB service (profile `local-db`)
+Заполните:
 
-## 3. Optional Local PostgreSQL (for staging/dev)
+- `DATABASE_URL`;
+- `DIRECT_DATABASE_URL`;
+- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, если PostgreSQL запускается через Compose;
+- `JWT_ACCESS_SECRET`;
+- `JWT_REFRESH_SECRET`;
+- `APP_ORIGIN`;
+- `NEXT_PUBLIC_SITE_URL`;
+- `NEXT_PUBLIC_API_PROXY_TARGET`;
+- `INTERNAL_API_BASE`;
+- `STORAGE_DRIVER`;
+- storage/S3 переменные.
+
+Все `CHANGE_ME...` значения должны быть заменены.
+
+## Docker Compose
+
+Серверный Compose:
+
+```bash
+docker compose -f docker-compose.server.yml up -d --build
+```
+
+Применить миграции:
+
+```bash
+docker compose -f docker-compose.server.yml exec api npm run prisma:migrate -w apps/api
+```
+
+Опционально выполнить seed:
+
+```bash
+docker compose -f docker-compose.server.yml exec api npm run prisma:seed -w apps/api
+```
+
+Проверить:
+
+```bash
+curl http://localhost:4000/health
+curl http://localhost/api/v1/categories
+```
+
+## Docker Compose с MinIO
+
+`docker-compose.yml` содержит:
+
+- `postgres` с profile `local-db`;
+- `minio`;
+- `minio-init`;
+- `api`;
+- `web`.
+
+Запуск PostgreSQL из profile:
+
 ```bash
 docker compose --profile local-db up -d postgres
 ```
 
-## 4. Database Migration
+Запуск полного набора:
+
 ```bash
-docker compose exec api npm run prisma:migrate -w apps/api
+docker compose up -d --build
 ```
 
-Seed once (optional):
+## PM2
+
 ```bash
-docker compose exec api npm run prisma:seed -w apps/api
+npm ci
+npm run prisma:migrate -w apps/api
+npm run build
+sudo npm install -g pm2
+pm2 start "npm run start -w apps/api" --name polytech-api
+pm2 start "npm run start -w apps/web" --name polytech-web
+pm2 save
+pm2 startup
 ```
 
-## 5. Reverse Proxy (Recommended)
-Use Nginx or Traefik in front of `web` and `api`.
-- Route UI to `web:3000`
-- Route API to `api:4000`
-- Enable HTTPS and HSTS
+Команды:
 
-## 6. PostgreSQL Backup
-For managed DB use provider snapshots + logical backups.
+```bash
+pm2 status
+pm2 logs polytech-api
+pm2 logs polytech-web
+pm2 restart polytech-api polytech-web
+```
 
-Manual backup example:
+## systemd
+
+API service:
+
+```ini
+[Unit]
+Description=Polytech Media Archive API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/media-main
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start -w apps/api
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Web service:
+
+```ini
+[Unit]
+Description=Polytech Media Archive Web
+After=network.target polytech-api.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/media-main
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start -w apps/web
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Запуск:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now polytech-api polytech-web
+sudo systemctl status polytech-api polytech-web
+```
+
+## Reverse proxy
+
+Рекомендуется Nginx или Traefik:
+
+- включить HTTPS;
+- проксировать web на `127.0.0.1:80`;
+- API может идти через Next.js rewrite или отдельный upstream `127.0.0.1:4000`;
+- `client_max_body_size` должен соответствовать `FILE_MAX_SIZE_MB`;
+- включить HSTS после проверки HTTPS.
+
+## Обновление
+
+```bash
+git pull
+npm ci
+npm run prisma:migrate -w apps/api
+npm run build
+```
+
+Перезапуск PM2:
+
+```bash
+pm2 restart polytech-api polytech-web
+```
+
+Перезапуск systemd:
+
+```bash
+sudo systemctl restart polytech-api polytech-web
+```
+
+Перезапуск Docker:
+
+```bash
+docker compose -f docker-compose.server.yml up -d --build
+```
+
+Перед production-обновлением сделайте backup БД и `storage`.
+
+## Backup
+
+PostgreSQL:
+
 ```bash
 pg_dump "$DATABASE_URL" > backup_$(date +%F).sql
 ```
 
 Restore:
+
 ```bash
-psql "$DATABASE_URL" < backup_2026-03-11.sql
+psql "$DATABASE_URL" < backup_2026-06-07.sql
 ```
 
-Recommended schedule:
-- daily incremental/logical backups
-- weekly full backup
-- offsite copy retention policy (e.g. 30/90 days)
+Файлы:
 
-## 7. File Backup
-Local storage folder:
-- `./storage`
-
-Backup example:
 ```bash
 tar -czf storage_backup_$(date +%F).tar.gz storage
 ```
 
-## 8. Switch Local Storage to S3
-1. Set env:
-   - `STORAGE_DRIVER=S3`
-   - `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`
-2. Ensure bucket exists and API account has read/write/delete permissions
-3. Restart API service
+## Проверка после deploy
 
-## 9. Performance Checklist
-- Enable DB connection pooling
-- Keep indexes up to date (`ANALYZE`, `VACUUM`)
-- Use CDN/cache for static media
-- Monitor API latency and DB slow queries
+```bash
+npm run lint
+npm run test
+npm run build
+curl http://localhost:4000/health
+curl http://localhost/api/v1/categories
+```
 
-## 10. Security Checklist
-- Use HTTPS only
-- Restrict DB network access
-- Rotate JWT secrets periodically
-- Limit admin accounts
-- Configure firewall/WAF and audit logging
+Проверьте вручную:
+
+- login/logout;
+- каталог;
+- поиск;
+- карточку материала;
+- upload/view/download файла;
+- создание и редактирование материала;
+- пользователей;
+- категории и теги;
+- импорт/экспорт;
+- журнал аудита.

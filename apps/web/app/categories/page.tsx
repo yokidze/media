@@ -8,12 +8,14 @@ import { useLanguage } from '@/components/LanguageProvider';
 interface Category {
   id: string;
   name: string;
+  nameRu?: string | null;
+  nameKaz?: string | null;
   description?: string | null;
   children: Category[];
 }
 
 export default function CategoriesPage(): React.JSX.Element {
-  const { language } = useLanguage();
+  const { categoryLabel, language } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function CategoriesPage(): React.JSX.Element {
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {categories.map((category) => (
           <article key={category.id} className="card p-5">
-            <h2 className="text-lg font-semibold">{category.name}</h2>
+            <h2 className="text-lg font-semibold">{categoryLabel(category)}</h2>
             <p className="mt-2 text-sm text-slate-600">{category.description ?? (language === 'kaz' ? 'Сипаттама жоқ' : 'Без описания')}</p>
             <Link href={`/archive?categoryIds=${category.id}`} className="mt-4 inline-block text-sm font-semibold text-brand-700 hover:text-brand-800">
               {language === 'kaz' ? 'Материалдарды ашу' : 'Открыть материалы'}

@@ -8,7 +8,7 @@ import type { MaterialType } from '@/lib/types';
 interface FiltersPanelProps {
   options: {
     years: number[];
-    categories: Array<{ id: string; name: string }>;
+    categories: Array<{ id: string; name: string; nameRu?: string | null; nameKaz?: string | null }>;
     materialTypes: string[];
   };
 }
@@ -28,7 +28,7 @@ export function FiltersPanel({ options }: FiltersPanelProps): React.JSX.Element 
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const { materialTypeLabel, t } = useLanguage();
+  const { categoryLabel, materialTypeLabel, t } = useLanguage();
 
   const update = (mutator: (search: URLSearchParams) => void): void => {
     const search = new URLSearchParams(params.toString());
@@ -103,7 +103,7 @@ export function FiltersPanel({ options }: FiltersPanelProps): React.JSX.Element 
         <p className="mb-2 text-sm font-semibold">{t('filtersCategories')}</p>
         {renderMulti(
           'categoryIds',
-          options.categories.map((category) => ({ id: category.id, label: category.name })),
+          options.categories.map((category) => ({ id: category.id, label: categoryLabel(category) })),
           selectedCategories
         )}
       </div>

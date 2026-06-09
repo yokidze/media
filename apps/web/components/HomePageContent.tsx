@@ -7,10 +7,30 @@ import { AddMaterialButton } from '@/components/AddMaterialButton';
 import { useLanguage } from '@/components/LanguageProvider';
 import type { ArchiveItem, ContentSection } from '@/lib/types';
 
-const QUICK_LINK_SECTIONS: ContentSection[] = ['ARTICLE', 'TV_STORY', 'EVENT_PHOTO'];
+type QuickLink =
+  | { kind: 'section'; value: ContentSection }
+  | { kind: 'materialType'; value: 'UMKD' };
 
-function HeroQuickLinkIcon({ section }: { section: ContentSection }): React.JSX.Element {
-  if (section === 'TV_STORY') {
+const QUICK_LINKS: QuickLink[] = [
+  { kind: 'section', value: 'ARTICLE' },
+  { kind: 'section', value: 'TV_STORY' },
+  { kind: 'section', value: 'EVENT_PHOTO' },
+  { kind: 'section', value: 'METHODICAL_AUTHOR_PROGRAM' },
+  { kind: 'materialType', value: 'UMKD' }
+];
+
+function HeroQuickLinkIcon({ link }: { link: QuickLink }): React.JSX.Element {
+  if (link.kind === 'materialType') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-5 w-5" aria-hidden="true">
+        <path d="M7 4.5h7l3 3V19a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 6 19V6a1.5 1.5 0 0 1 1.5-1.5Z" />
+        <path d="M14 4.5V8h3" />
+        <path d="M9 12h6M9 15h4" />
+      </svg>
+    );
+  }
+
+  if (link.value === 'TV_STORY') {
     return (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-5 w-5" aria-hidden="true">
         <rect x="3" y="5" width="18" height="14" rx="2.5" />
@@ -19,7 +39,7 @@ function HeroQuickLinkIcon({ section }: { section: ContentSection }): React.JSX.
     );
   }
 
-  if (section === 'EVENT_PHOTO') {
+  if (link.value === 'EVENT_PHOTO') {
     return (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" className="h-5 w-5" aria-hidden="true">
         <rect x="3" y="5" width="18" height="14" rx="2.5" />
@@ -39,7 +59,7 @@ function HeroQuickLinkIcon({ section }: { section: ContentSection }): React.JSX.
 }
 
 export function HomePageContent({ latestItems }: { latestItems: ArchiveItem[] }): React.JSX.Element {
-  const { sectionLabel, t } = useLanguage();
+  const { materialTypeLabel, sectionLabel, t } = useLanguage();
 
   return (
     <div className="container-shell py-7 md:py-10">
@@ -63,17 +83,27 @@ export function HomePageContent({ latestItems }: { latestItems: ArchiveItem[] })
 
         <div className="relative mx-auto mt-6 w-full max-w-4xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{t('homeQuickLinks')}</p>
-          <div className="grid gap-2.5 sm:grid-cols-3 md:gap-3">
-            {QUICK_LINK_SECTIONS.map((section) => (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {QUICK_LINKS.map((link) => (
               <Link
-                key={section}
-                href={`/archive?section=${section}`}
-                className="group flex items-center gap-2 rounded-xl border border-slate-200/90 bg-white/95 px-3 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md"
+                key={`${link.kind}:${link.value}`}
+                href={link.kind === 'materialType' ? `/archive?materialTypes=${link.value}` : `/archive?section=${link.value}`}
+                className={
+                  link.kind === 'materialType'
+                    ? 'group flex min-h-[72px] items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md sm:col-span-2 sm:mx-auto sm:w-[min(100%,420px)] lg:col-span-4'
+                    : 'group flex min-h-[72px] items-center gap-3 rounded-2xl border border-slate-200/90 bg-white/95 px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md'
+                }
               >
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100 text-slate-600 transition group-hover:bg-brand-50 group-hover:text-brand-700">
-                  <HeroQuickLinkIcon section={section} />
+                <span
+                  className={
+                    'grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-600 transition group-hover:bg-brand-50 group-hover:text-brand-700'
+                  }
+                >
+                  <HeroQuickLinkIcon link={link} />
                 </span>
-                <span className="text-left">{sectionLabel(section)}</span>
+                <span className="min-w-0 text-left">
+                  <span className="block break-words text-sm font-semibold">{link.kind === 'materialType' ? materialTypeLabel(link.value) : sectionLabel(link.value)}</span>
+                </span>
               </Link>
             ))}
           </div>

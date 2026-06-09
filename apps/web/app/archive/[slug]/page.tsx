@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
 import { formatDate, formatBytes } from '@/lib/utils';
-import type { MaterialType } from '@/lib/types';
+import type { ContentSection, MaterialType } from '@/lib/types';
 import { useLanguage } from '@/components/LanguageProvider';
 import { withClientApiPath } from '@/lib/config';
 
@@ -15,7 +15,7 @@ interface ArchiveItemDetail {
   title: string;
   description: string;
   materialType: MaterialType;
-  contentSection: 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO';
+  contentSection: ContentSection;
   accessLevel: string;
   status: 'DRAFT' | 'PUBLISHED';
   publicationDate: string | null;
@@ -27,7 +27,7 @@ interface ArchiveItemDetail {
   keywords: string[];
   viewsCount: number;
   downloadsCount: number;
-  category?: { id: string; name: string } | null;
+  category?: { id: string; name: string; nameRu?: string | null; nameKaz?: string | null } | null;
   author?: { id: string; fullName: string } | null;
   tags: Array<{ id: string; name: string }>;
   files: Array<{
@@ -43,7 +43,7 @@ interface ArchiveItemDetail {
     id: string;
     slug: string;
     title: string;
-    category?: { name: string } | null;
+    category?: { name: string; nameRu?: string | null; nameKaz?: string | null } | null;
   }>;
 }
 
@@ -114,7 +114,7 @@ const renderPreview = (file: ArchiveItemDetail['files'][number], noPreviewText: 
 
 export default function ArchiveItemDetailPage(): React.JSX.Element {
   const params = useParams<{ slug: string }>();
-  const { language, materialTypeLabel, sectionLabel } = useLanguage();
+  const { categoryLabel, language, materialTypeLabel, sectionLabel } = useLanguage();
   const [item, setItem] = useState<ArchiveItemDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -165,7 +165,7 @@ export default function ArchiveItemDetailPage(): React.JSX.Element {
             </div>
             <div>
               <dt className="text-slate-500">{language === 'kaz' ? 'Санат' : 'Категория'}</dt>
-              <dd className="font-medium text-slate-800">{item.category?.name ?? (language === 'kaz' ? 'Көрсетілмеген' : 'Не указана')}</dd>
+              <dd className="font-medium text-slate-800">{item.category ? categoryLabel(item.category) : language === 'kaz' ? 'Көрсетілмеген' : 'Не указана'}</dd>
             </div>
             <div>
               <dt className="text-slate-500">{language === 'kaz' ? 'Жарияланған күні' : 'Дата публикации'}</dt>
@@ -282,7 +282,7 @@ export default function ArchiveItemDetailPage(): React.JSX.Element {
             {item.recommendations.map((recommendation) => (
               <Link key={recommendation.id} href={`/archive/${recommendation.slug}`} className="rounded-lg border border-slate-200 p-3 hover:border-brand-300">
                 <p className="font-semibold">{recommendation.title}</p>
-                <p className="text-sm text-slate-500">{recommendation.category?.name ?? (language === 'kaz' ? 'Санатсыз' : 'Без категории')}</p>
+                <p className="text-sm text-slate-500">{recommendation.category ? categoryLabel(recommendation.category) : language === 'kaz' ? 'Санатсыз' : 'Без категории'}</p>
               </Link>
             ))}
           </div>

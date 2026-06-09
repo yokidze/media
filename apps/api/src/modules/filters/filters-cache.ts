@@ -1,6 +1,6 @@
 ﻿export interface FiltersOptionsPayload {
   years: number[];
-  categories: Array<{ id: string; name: string }>;
+  categories: Array<{ id: string; name: string; nameRu?: string | null; nameKaz?: string | null }>;
   authors: Array<{ id: string; fullName: string }>;
   tags: Array<{ id: string; name: string }>;
   languages: string[];

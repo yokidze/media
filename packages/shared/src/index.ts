@@ -5,13 +5,14 @@ export type MaterialType =
   | 'ARTICLE'
   | 'NEWSPAPER'
   | 'BOOKLET'
+  | 'UMKD'
   | 'IMAGE'
   | 'VIDEO'
   | 'AUDIO'
   | 'SCAN'
   | 'OTHER';
 
-export type ContentSection = 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO';
+export type ContentSection = 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO' | 'METHODICAL_AUTHOR_PROGRAM';
 
 export type UserRole = 'GUEST' | 'STAFF' | 'ADMIN';
 

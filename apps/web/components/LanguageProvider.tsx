@@ -23,6 +23,7 @@ interface LanguageContextValue {
   sectionLabel: (section: ContentSection) => string;
   sectionTypeLabel: (section: ContentSection) => string;
   materialTypeLabel: (type: MaterialType) => string;
+  categoryLabel: (category: string | { name: string; nameRu?: string | null; nameKaz?: string | null }) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -49,7 +50,16 @@ export function LanguageProvider({ children }: { children: ReactNode }): React.J
       t: (key) => UI_DICTIONARIES[language][key],
       sectionLabel: (section) => SECTION_LABELS_BY_LANGUAGE[language][section],
       sectionTypeLabel: (section) => SECTION_TYPE_LABELS_BY_LANGUAGE[language][section],
-      materialTypeLabel: (type) => MATERIAL_TYPE_LABELS_BY_LANGUAGE[language][type]
+      materialTypeLabel: (type) => MATERIAL_TYPE_LABELS_BY_LANGUAGE[language][type],
+      categoryLabel: (category) => {
+        const name = typeof category === 'string' ? category : category.name;
+        const localizedName = typeof category === 'string' ? null : language === 'kaz' ? category.nameKaz : category.nameRu;
+        if (localizedName?.trim()) return localizedName.trim();
+
+        const parts = name.split(/\s+\/\s+/).map((part) => part.trim()).filter(Boolean);
+        if (parts.length !== 2) return name;
+        return language === 'kaz' ? parts[0] : parts[1];
+      }
     }),
     [language]
   );

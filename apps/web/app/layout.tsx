@@ -11,21 +11,21 @@ const manrope = Manrope({ subsets: ['latin', 'cyrillic'], variable: '--font-manr
 const merriweather = Merriweather({ subsets: ['latin', 'cyrillic'], variable: '--font-merriweather', weight: ['300', '400', '700'] });
 
 export const metadata: Metadata = {
-  title: 'Политех Медиа Архив',
+  title: 'Polytech медиа архив',
   description: 'Колледждің мақалалар, телесюжеттер және фото іс-шаралар бойынша цифрлық мұрағаты',
-  applicationName: 'Политех Медиа Архив',
+  applicationName: 'Polytech медиа архив',
   icons: {
     icon: '/assets/LOGO_NEW.png',
     shortcut: '/assets/LOGO_NEW.png',
     apple: '/assets/LOGO_NEW.png'
   },
   openGraph: {
-    title: 'Политех Медиа Архив',
+    title: 'Polytech медиа архив',
     description: 'Колледждің мақалалар, телесюжеттер және фото іс-шаралар бойынша цифрлық мұрағаты'
   },
   twitter: {
     card: 'summary',
-    title: 'Политех Медиа Архив',
+    title: 'Polytech медиа архив',
     description: 'Колледждің мақалалар, телесюжеттер және фото іс-шаралар бойынша цифрлық мұрағаты'
   }
 };

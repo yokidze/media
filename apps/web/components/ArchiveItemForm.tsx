@@ -61,7 +61,7 @@ interface MeResponse {
 }
 
 interface FormOptionsResponse {
-  categories: Array<{ id: string; name: string }>;
+  categories: Array<{ id: string; name: string; nameRu?: string | null; nameKaz?: string | null }>;
   materialTypes: string[];
 }
 
@@ -162,12 +162,12 @@ const composeTextContent = (values: FormValues, language: 'rus' | 'kaz', textBod
 };
 
 const isMaterialType = (value: string): value is MaterialType => {
-  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
+  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
 };
 
 export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Element {
   const router = useRouter();
-  const { language, materialTypeLabel } = useLanguage();
+  const { categoryLabel, language, materialTypeLabel } = useLanguage();
   const formSchema = useMemo(() => buildFormSchema(language), [language]);
 
   const [files, setFiles] = useState<File[]>([]);
@@ -371,7 +371,7 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
                 placeholder={language === 'kaz' ? 'Санатты таңдаңыз' : 'Выберите категорию'}
                 options={options.categories.map((category) => ({
                   value: category.id,
-                  label: category.name
+                  label: categoryLabel(category)
                 }))}
                 onChange={field.onChange}
               />

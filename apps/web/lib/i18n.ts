@@ -139,7 +139,7 @@ export type UiTranslationKey = keyof UiDictionary;
 
 export const UI_DICTIONARIES: Record<AppLanguage, UiDictionary> = {
   rus: {
-    appTitle: 'Политех Медиа Архив',
+    appTitle: 'Polytech медиа архив',
     headerProfile: 'Профиль',
     headerLogin: 'Войти',
     themeLight: 'Светлая тема',
@@ -258,7 +258,7 @@ export const UI_DICTIONARIES: Record<AppLanguage, UiDictionary> = {
     cardManageDeleteFailed: 'Не удалось удалить материал. Попробуйте снова.'
   },
   kaz: {
-    appTitle: 'Политех Медиа Архив',
+    appTitle: 'Polytech медиа архив',
     headerProfile: 'Жеке кабинет',
     headerLogin: 'Кіру',
     themeLight: 'Жарық тақырып',
@@ -382,12 +382,14 @@ export const SECTION_LABELS_BY_LANGUAGE: Record<AppLanguage, Record<ContentSecti
   rus: {
     ARTICLE: 'Статьи',
     TV_STORY: 'Телесюжеты',
-    EVENT_PHOTO: 'Фото мероприятий'
+    EVENT_PHOTO: 'Фото мероприятий',
+    METHODICAL_AUTHOR_PROGRAM: 'Методические рекомендации и авторские программы'
   },
   kaz: {
     ARTICLE: 'Мақалалар',
     TV_STORY: 'Телесюжеттер',
-    EVENT_PHOTO: 'Іс-шара фотолары'
+    EVENT_PHOTO: 'Іс-шара фотолары',
+    METHODICAL_AUTHOR_PROGRAM: 'Әдістемелік ұсынымдар және авторлық бағдарламалар'
   }
 };
 
@@ -395,12 +397,14 @@ export const SECTION_TYPE_LABELS_BY_LANGUAGE: Record<AppLanguage, Record<Content
   rus: {
     ARTICLE: 'Статья',
     TV_STORY: 'Телесюжет',
-    EVENT_PHOTO: 'Фото'
+    EVENT_PHOTO: 'Фото',
+    METHODICAL_AUTHOR_PROGRAM: 'Методический материал'
   },
   kaz: {
     ARTICLE: 'Мақала',
     TV_STORY: 'Телесюжет',
-    EVENT_PHOTO: 'Фото'
+    EVENT_PHOTO: 'Фото',
+    METHODICAL_AUTHOR_PROGRAM: 'Әдістемелік материал'
   }
 };
 
@@ -410,6 +414,7 @@ export const MATERIAL_TYPE_LABELS_BY_LANGUAGE: Record<AppLanguage, Record<Materi
     ARTICLE: 'Статья',
     NEWSPAPER: 'Газета',
     BOOKLET: 'Буклет',
+    UMKD: 'Учебно-методический комплекс дисциплины',
     IMAGE: 'Фото',
     VIDEO: 'Видео',
     AUDIO: 'Аудио',
@@ -421,6 +426,7 @@ export const MATERIAL_TYPE_LABELS_BY_LANGUAGE: Record<AppLanguage, Record<Materi
     ARTICLE: 'Мақала',
     NEWSPAPER: 'Газет',
     BOOKLET: 'Кітапша',
+    UMKD: 'Пәннің оқу-әдістемелік кешені',
     IMAGE: 'Сурет',
     VIDEO: 'Бейне',
     AUDIO: 'Аудио',

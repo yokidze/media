@@ -1,9 +1,17 @@
 ﻿import { ContentSection, MaterialType } from '@prisma/client';
 
-export const CONTENT_SECTIONS = [ContentSection.ARTICLE, ContentSection.TV_STORY, ContentSection.EVENT_PHOTO] as const;
+export const CONTENT_SECTIONS = [
+  ContentSection.ARTICLE,
+  ContentSection.TV_STORY,
+  ContentSection.EVENT_PHOTO,
+  ContentSection.METHODICAL_AUTHOR_PROGRAM
+] as const;
 
 export const isContentSection = (value: string): value is ContentSection =>
-  value === ContentSection.ARTICLE || value === ContentSection.TV_STORY || value === ContentSection.EVENT_PHOTO;
+  value === ContentSection.ARTICLE ||
+  value === ContentSection.TV_STORY ||
+  value === ContentSection.EVENT_PHOTO ||
+  value === ContentSection.METHODICAL_AUTHOR_PROGRAM;
 
 export const parseContentSection = (value: string | null | undefined): ContentSection | undefined => {
   if (!value) return undefined;
@@ -13,6 +21,7 @@ export const parseContentSection = (value: string | null | undefined): ContentSe
 export const deriveContentSection = (materialType: MaterialType): ContentSection => {
   if (materialType === 'VIDEO') return ContentSection.TV_STORY;
   if (materialType === 'IMAGE') return ContentSection.EVENT_PHOTO;
+  if (materialType === 'UMKD') return ContentSection.METHODICAL_AUTHOR_PROGRAM;
   return ContentSection.ARTICLE;
 };
 

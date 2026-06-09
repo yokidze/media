@@ -16,13 +16,13 @@ interface ArchiveItemCardProps {
   item: ArchiveItem;
   canManage?: boolean;
   editableOptions?: {
-    categories: Array<{ id: string; name: string }>;
+    categories: Array<{ id: string; name: string; nameRu?: string | null; nameKaz?: string | null }>;
     materialTypes: string[];
   };
 }
 
 const isMaterialType = (value: string): value is MaterialType => {
-  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
+  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
 };
 
 const friendlyManageError = (error: unknown, fallback: string, language: 'rus' | 'kaz'): string => {
@@ -50,7 +50,7 @@ const friendlyManageError = (error: unknown, fallback: string, language: 'rus' |
 
 export function ArchiveItemCard({ item, canManage = false, editableOptions }: ArchiveItemCardProps): React.JSX.Element {
   const primary = item.files.find((file) => file.isPrimary) ?? item.files[0];
-  const { materialTypeLabel, sectionLabel, t, language } = useLanguage();
+  const { categoryLabel, materialTypeLabel, sectionLabel, t, language } = useLanguage();
   const router = useRouter();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -269,7 +269,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
               {t('cardDate')}: {formatDate(item.publicationDate)}
             </span>
             <span>
-              {t('cardCategory')}: {item.category?.name ?? t('cardNoCategory')}
+              {t('cardCategory')}: {item.category ? categoryLabel(item.category) : t('cardNoCategory')}
             </span>
             <span>
               {t('cardViews')}: {item.viewsCount}
@@ -318,7 +318,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
                     placeholder={t('cardManageNoCategory')}
                     options={[
                       { value: '', label: t('cardManageNoCategory') },
-                      ...categories.map((category) => ({ value: category.id, label: category.name }))
+                      ...categories.map((category) => ({ value: category.id, label: categoryLabel(category) }))
                     ]}
                     onChange={setCategoryId}
                   />

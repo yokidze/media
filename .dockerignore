@@ -6,3 +6,14 @@
 .gitignore
 .env
 .env.*
+*.log
+storage
+backups
+release
+tmp
+temp
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+*.dump

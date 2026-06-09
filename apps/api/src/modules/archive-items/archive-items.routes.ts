@@ -55,6 +55,8 @@ const listSelect = {
     select: {
       id: true,
       name: true,
+      nameRu: true,
+      nameKaz: true,
       slug: true,
       description: true,
       parentId: true

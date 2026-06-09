@@ -32,7 +32,7 @@ interface MyMaterial {
   publicationDate: string | null;
   archiveYear: number | null;
   status: 'DRAFT' | 'PUBLISHED';
-  category: { id: string; name: string } | null;
+  category: { id: string; name: string; nameRu?: string | null; nameKaz?: string | null } | null;
 }
 
 interface ProfileFormState {
@@ -58,7 +58,7 @@ const hasImageUrl = (value: string | null | undefined): boolean => Boolean(value
 
 export function AccountOverview(): React.JSX.Element {
   const router = useRouter();
-  const { sectionTypeLabel, t, language } = useLanguage();
+  const { categoryLabel, sectionTypeLabel, t, language } = useLanguage();
   const [profile, setProfile] = useState<MeResponse | null>(null);
   const [myMaterials, setMyMaterials] = useState<MyMaterial[]>([]);
   const [form, setForm] = useState<ProfileFormState | null>(null);
@@ -446,7 +446,7 @@ export function AccountOverview(): React.JSX.Element {
                     <p className="mt-1 text-xs text-slate-500">
                       {sectionTypeLabel(item.contentSection)}
                       {item.publicationDate ? ` • ${formatDate(item.publicationDate)}` : item.archiveYear ? ` • ${item.archiveYear}` : ''}
-                      {item.category?.name ? ` • ${item.category.name}` : ''}
+                      {item.category ? ` • ${categoryLabel(item.category)}` : ''}
                     </p>
                   </div>
 

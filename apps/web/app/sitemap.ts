@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/archive?section=ARTICLE',
     '/archive?section=TV_STORY',
     '/archive?section=EVENT_PHOTO',
+    '/archive?materialTypes=UMKD',
     '/categories',
     '/login'
   ].map((path) => ({

@@ -13,7 +13,7 @@
     "@hookform/resolvers": "^5.0.1",
     "@tanstack/react-table": "^8.21.2",
     "clsx": "^2.1.1",
-    "next": "15.2.2",
+    "next": "^15.5.19",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-dropzone": "^14.3.8",
@@ -25,9 +25,9 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.4.21",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.15",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.8"
+    "vitest": "^4.1.8"
   }
 }

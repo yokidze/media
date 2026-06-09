@@ -1,122 +1,228 @@
-﻿# Политех Медиа Архив
+# Polytech Media Archive
 
-Production-ready платформа цифрового архива колледжа с акцентом на медиа-контент:
-- публичный каталог с разделами: статьи, телесюжеты, фото мероприятий
-- фильтрация и полнотекстовый поиск
-- защищённая админ-панель с RBAC
-- загрузка файлов (multi-file), поддержка Local/S3 storage
-- Prisma + PostgreSQL, готовность к облачной БД
+Цифровой медиаархив колледжа: публичный каталог материалов, полнотекстовый поиск, фильтры, избранное, история просмотров, личный кабинет преподавателя и защищенная административная панель.
 
-## Tech Stack
-- Frontend: Next.js 15, TypeScript, Tailwind CSS
-- Backend: Node.js, Express, TypeScript, Prisma
-- Database: PostgreSQL 16+
-- Search: PostgreSQL Full-Text Search + `pg_trgm`
-- Auth: JWT access/refresh cookies, RBAC, CSRF
-- Storage: Local filesystem или S3-compatible (MinIO/AWS S3)
-- Infra: Docker Compose
+Проект построен как TypeScript-монорепозиторий:
 
-## Project Structure
-```text
-.
-├── apps
-│   ├── api
-│   │   ├── prisma
-│   │   │   ├── schema.prisma
-│   │   │   ├── migrations/
-│   │   │   └── seed.ts
-│   │   ├── src
-│   │   │   ├── modules/
-│   │   │   ├── middleware/
-│   │   │   ├── services/
-│   │   │   └── app.ts
-│   │   └── tests/
-│   └── web
-│       ├── app/
-│       ├── components/
-│       ├── lib/
-│       └── tests/
-├── packages/shared
-├── docs
-├── storage
-├── docker-compose.yml
-└── .env.example
+- `apps/web` - Next.js 15 frontend.
+- `apps/api` - Express REST API.
+- `packages/shared` - общие типы DTO.
+- `docs` - документация по архитектуре, администрированию и развертыванию.
+- `storage` - локальные загрузки и служебные файлы хранилища.
+- `backups` - резервные копии БД.
+- `release` - собранные архивы для передачи на сервер.
+
+## Документация
+
+Основной справочник проекта:
+
+- [Полная документация и справочник](docs/project-reference.md)
+
+Дополнительные документы:
+
+- [Архитектура](docs/architecture.md)
+- [Руководство администратора](docs/admin-guide.md)
+- [Развертывание](docs/deployment.md)
+- [Развертывание на сервере колледжа](docs/college-server-deploy.md)
+
+## Технологии
+
+- Frontend: Next.js 15, React 19, TypeScript, Tailwind CSS.
+- Backend: Node.js, Express, TypeScript.
+- Database: PostgreSQL 16+, Prisma ORM.
+- Search: PostgreSQL Full-Text Search и `pg_trgm`.
+- Auth: JWT cookies, refresh-сессии, CSRF, RBAC.
+- Storage: локальная файловая система или S3-совместимое хранилище.
+- Tests: Vitest.
+- Deploy: Docker Compose, PM2 или systemd.
+
+## Быстрый локальный запуск
+
+Требования:
+
+- Node.js `>=20.11.0`
+- npm
+- PostgreSQL 16+ или Docker
+
+```bash
+cp .env.example .env
+npm install
+npm run prisma:migrate -w apps/api
+npm run prisma:seed -w apps/api
+npm run dev
 ```
 
-## Контент и разделы
-Ключевые разделы каталога:
-- `ARTICLE` -> Статьи
-- `TV_STORY` -> Телесюжеты
-- `EVENT_PHOTO` -> Фото мероприятий
+После запуска:
 
-В модели `ArchiveItem` сохранён `materialType` и добавлен `contentSection` для отдельной навигации по разделам без ломки старой логики.
+- Web: `http://localhost`
+- API healthcheck: `http://localhost:4000/health`
+- API base path: `http://localhost:4000/api/v1`
 
-## API Endpoints (v1)
-- `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`, `GET|POST|DELETE /auth/me/avatar`
-- `GET|POST|PATCH|DELETE /users`
-- `GET|POST|PATCH|DELETE /archive-items`, `POST /archive-items/bulk`
-- `POST /archive-items/:itemId/files`
-- `GET /files/:id/view`, `GET /files/:id/preview`, `GET /files/:id/download`, `DELETE /files/:id`
-- `GET|POST|PATCH|DELETE /categories`
-- `GET|POST|PATCH|DELETE /tags`
-- `GET /search`, `GET /search/autocomplete`, `GET /search/suggestions`
-- `GET /filters/options`
-- `GET /statistics/dashboard`
-- `GET /favorites`, `POST /favorites`, `DELETE /favorites/:archiveItemId`
-- `GET /history`
-- `GET /admin/audit-logs`, `POST /admin/import/csv`, `GET /admin/export/archive-items`
+Если PostgreSQL поднимается через Docker Compose:
 
-## Запуск (рекомендуемый: внешняя БД)
-1. Скопируйте env:
-   - `copy .env.example .env` (Windows)
-2. Укажите `DATABASE_URL` (облачный PostgreSQL).
-3. Установите зависимости:
-   - `npm install`
-4. Примените миграции:
-   - `npm run prisma:migrate -w apps/api`
-5. (Опционально) заполните seed:
-   - `npm run prisma:seed -w apps/api`
-6. Запустите dev:
-   - `npm run dev`
-
-Frontend: [http://localhost](http://localhost)
-Backend: [http://localhost:4000](http://localhost:4000)
-
-## Локальный Postgres (опционально)
-Если нужен локальный контейнер БД:
 ```bash
 docker compose --profile local-db up -d postgres
 ```
 
-Затем можно использовать `DATABASE_URL` вида:
-```text
-postgresql://archive_user:archive_password@localhost:5432/polytech_media_archive?schema=public
-```
+## Основные команды
 
-## Полный Docker запуск
 ```bash
-docker compose up --build
+npm run dev
+npm run build
+npm run lint
+npm run test
+npm run prisma:migrate -w apps/api
+npm run prisma:seed -w apps/api
 ```
 
-Важно: `api` теперь использует внешний `DATABASE_URL` из `.env` и не зависит от локального контейнера Postgres по умолчанию.
+Команды отдельных приложений:
 
-## Tests
 ```bash
-npm run test -w apps/api
-npm run test -w apps/web
+npm run dev -w apps/api
+npm run dev -w apps/web
+npm run build -w apps/api
+npm run build -w apps/web
 ```
 
-## Security
-- Argon2 password hashing
-- JWT access/refresh lifecycle + session storage
-- RBAC middleware checks
-- CSRF check (`x-csrf-token` vs cookie)
-- Helmet, CORS, rate limiting
-- Upload MIME validation and size limits
-- Prisma ORM + parameterized/raw SQL safeguards
+## Переменные окружения
 
-## Backups
-См. [`docs/deployment.md`](docs/deployment.md):
-- PostgreSQL backup/restore
-- file storage backup
-- recommended backup schedules
+Скопируйте шаблон:
+
+```bash
+cp .env.example .env
+```
+
+Ключевые переменные:
+
+- `DATABASE_URL` - строка подключения PostgreSQL.
+- `DIRECT_DATABASE_URL` - прямая строка для Prisma migrations, может совпадать с `DATABASE_URL`.
+- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` - секреты длиной не меньше 32 символов.
+- `APP_ORIGIN` - публичный origin frontend.
+- `NEXT_PUBLIC_SITE_URL` - публичный URL сайта.
+- `NEXT_PUBLIC_CLIENT_API_BASE` - клиентский API-префикс, обычно `/api/v1`.
+- `NEXT_PUBLIC_API_PROXY_TARGET` - адрес backend для Next.js rewrites.
+- `INTERNAL_API_BASE` - backend URL для server-side запросов frontend.
+- `STORAGE_DRIVER` - `LOCAL` или `S3`.
+- `STORAGE_LOCAL_ROOT` - путь к локальному хранилищу.
+- `FILE_MAX_SIZE_MB` - лимит размера загружаемого файла.
+
+Для production обязательно замените все значения `CHANGE_ME...`.
+
+## Docker Compose
+
+Серверный запуск с локальной PostgreSQL и локальным storage:
+
+```bash
+cp .env.server.example .env
+docker compose -f docker-compose.server.yml up -d --build
+```
+
+После первого запуска примените миграции:
+
+```bash
+docker compose -f docker-compose.server.yml exec api npm run prisma:migrate -w apps/api
+```
+
+Опционально заполните начальными данными:
+
+```bash
+docker compose -f docker-compose.server.yml exec api npm run prisma:seed -w apps/api
+```
+
+## Роли и доступ
+
+- `GUEST` - неавторизованный пользователь; видит только опубликованные `PUBLIC` материалы.
+- `STAFF` - сотрудник/преподаватель; видит `PUBLIC` и `STAFF_ONLY`, может создавать и редактировать свои материалы.
+- `ADMIN` - полный доступ к материалам, пользователям, справочникам, журналу аудита, импорту и экспорту.
+
+Уровни доступа материалов:
+
+- `PUBLIC` - доступно всем.
+- `STAFF_ONLY` - доступно сотрудникам и администраторам.
+- `HIDDEN` - доступно только администраторам.
+
+Статусы материалов:
+
+- `DRAFT` - черновик.
+- `PUBLISHED` - опубликованный материал.
+
+## Основные разделы сайта
+
+- `/` - главная страница.
+- `/archive` - каталог архива.
+- `/archive/[slug]` - карточка материала.
+- `/search` - поиск.
+- `/categories` - категории.
+- `/login` - вход.
+- `/account` - личный кабинет.
+- `/account/change-password` - смена пароля.
+- `/admin` - панель администратора.
+- `/admin/items` - управление материалами.
+- `/admin/items/new` - создание материала.
+- `/admin/categories` - категории.
+- `/admin/tags` - теги.
+- `/admin/users` - пользователи.
+- `/admin/access` - сводка доступа.
+- `/admin/import` - импорт/экспорт CSV.
+- `/admin/logs` - журнал аудита.
+
+## API
+
+Backend публикует REST API под префиксом `/api/v1`.
+
+Основные группы:
+
+- `/auth` - вход, refresh, logout, профиль, аватар, смена пароля.
+- `/archive-items` - материалы архива и загрузка файлов.
+- `/files` - просмотр, скачивание и превью файлов.
+- `/search` - полнотекстовый поиск, autocomplete, suggestions.
+- `/categories` - категории.
+- `/tags` - теги.
+- `/filters/options` - значения для фильтров.
+- `/favorites` - избранное пользователя.
+- `/history` - история просмотров пользователя.
+- `/statistics/dashboard` - административная статистика.
+- `/users` - управление пользователями.
+- `/admin` - overview, audit logs, CSV import/export.
+
+Полный перечень endpoint-ов описан в [справочнике](docs/project-reference.md).
+
+## Проверки перед сдачей или обновлением
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm run prisma:migrate -w apps/api
+```
+
+Smoke-check:
+
+```bash
+curl http://localhost:4000/health
+curl http://localhost:4000/api/v1/categories
+curl http://localhost/api/v1/categories
+```
+
+Проверьте вручную:
+
+- вход и выход из аккаунта;
+- открытие каталога и карточки материала;
+- поиск и фильтры;
+- загрузку, просмотр и скачивание файлов;
+- создание, редактирование и удаление материалов;
+- страницы категорий, тегов, пользователей и журнала аудита;
+- импорт и экспорт CSV.
+
+## Безопасность репозитория
+
+Нельзя коммитить:
+
+- `.env`, `apps/api/.env`, `apps/web/.env`;
+- пароли БД, JWT-секреты, S3-ключи, приватные ключи;
+- `storage` с загруженными файлами и локальными данными PostgreSQL;
+- `backups` с дампами БД;
+- `release` архивы;
+- `node_modules`, `dist`, `.next`, `.next-dev`, логи и временные файлы.
+
+Используйте `.env.example`, `.env.server.example`, `apps/api/.env.example` и `apps/web/.env.example` только как шаблоны.

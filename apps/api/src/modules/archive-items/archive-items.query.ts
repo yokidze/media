@@ -1,4 +1,4 @@
-﻿import { Prisma } from '@prisma/client';
+import { ContentSection, Prisma } from '@prisma/client';
 
 const parseList = (value?: string): string[] =>
   value
@@ -14,7 +14,7 @@ export interface ArchiveFilters {
   year?: number;
   dateFrom?: string;
   dateTo?: string;
-  section?: 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO';
+  section?: ContentSection;
   materialTypes: string[];
   categoryIds: string[];
   authorIds: string[];
@@ -33,7 +33,13 @@ export const parseArchiveFilters = (query: Record<string, unknown>): ArchiveFilt
   year: typeof query.year === 'number' ? query.year : Number(query.year) || undefined,
   dateFrom: typeof query.dateFrom === 'string' ? query.dateFrom : undefined,
   dateTo: typeof query.dateTo === 'string' ? query.dateTo : undefined,
-  section: query.section === 'ARTICLE' || query.section === 'TV_STORY' || query.section === 'EVENT_PHOTO' ? query.section : undefined,
+  section:
+    query.section === 'ARTICLE' ||
+    query.section === 'TV_STORY' ||
+    query.section === 'EVENT_PHOTO' ||
+    query.section === 'METHODICAL_AUTHOR_PROGRAM'
+      ? query.section
+      : undefined,
   materialTypes: parseList(typeof query.materialTypes === 'string' ? query.materialTypes : undefined),
   categoryIds: parseList(typeof query.categoryIds === 'string' ? query.categoryIds : undefined),
   authorIds: parseList(typeof query.authorIds === 'string' ? query.authorIds : undefined),

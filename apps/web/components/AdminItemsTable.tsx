@@ -9,7 +9,7 @@ import { StyledSelect } from '@/components/StyledSelect';
 import { useLanguage } from '@/components/LanguageProvider';
 
 interface FilterOptionsResponse {
-  categories: Array<{ id: string; name: string }>;
+  categories: Array<{ id: string; name: string; nameRu?: string | null; nameKaz?: string | null }>;
   authors: Array<{ id: string; fullName: string }>;
   materialTypes: string[];
 }
@@ -17,7 +17,7 @@ interface FilterOptionsResponse {
 type StatusFilter = 'all' | 'PUBLISHED' | 'DRAFT';
 
 export function AdminItemsTable(): React.JSX.Element {
-  const { language, materialTypeLabel, sectionLabel } = useLanguage();
+  const { categoryLabel, language, materialTypeLabel, sectionLabel } = useLanguage();
   const [items, setItems] = useState<ArchiveItem[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [options, setOptions] = useState<FilterOptionsResponse | null>(null);
@@ -200,7 +200,10 @@ export function AdminItemsTable(): React.JSX.Element {
         <StyledSelect
           value={categoryId}
           placeholder={language === 'kaz' ? 'Санат' : 'Категория'}
-          options={[{ value: '', label: language === 'kaz' ? 'Барлық санаттар' : 'Все категории' }, ...(options?.categories ?? []).map((category) => ({ value: category.id, label: category.name }))]}
+          options={[
+            { value: '', label: language === 'kaz' ? 'Барлық санаттар' : 'Все категории' },
+            ...(options?.categories ?? []).map((category) => ({ value: category.id, label: categoryLabel(category) }))
+          ]}
           onChange={(value) => {
             setPage(1);
             setCategoryId(value);
@@ -279,7 +282,7 @@ export function AdminItemsTable(): React.JSX.Element {
                 <td className="px-3 py-2 font-medium">{item.title}</td>
                 <td className="px-3 py-2">{sectionLabel(item.contentSection)}</td>
                 <td className="px-3 py-2">{materialTypeLabel(item.materialType)}</td>
-                <td className="px-3 py-2">{item.category?.name ?? '—'}</td>
+                <td className="px-3 py-2">{item.category ? categoryLabel(item.category) : '—'}</td>
                 <td className="px-3 py-2">{item.status === 'PUBLISHED' ? (language === 'kaz' ? 'Жарияланған' : 'Опубликован') : language === 'kaz' ? 'Жоба' : 'Черновик'}</td>
                 <td className="px-3 py-2">{formatDate(item.publicationDate)}</td>
                 <td className="px-3 py-2">

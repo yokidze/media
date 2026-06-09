@@ -7,26 +7,30 @@ import { useLanguage } from '@/components/LanguageProvider';
 interface Category {
   id: string;
   name: string;
+  nameRu?: string | null;
+  nameKaz?: string | null;
   slug: string;
   description?: string | null;
 }
 
 interface CategoryForm {
   name: string;
+  nameRu: string;
+  nameKaz: string;
   description: string;
 }
 
 export function CategoriesManager(): React.JSX.Element {
-  const { language } = useLanguage();
+  const { categoryLabel, language } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [createForm, setCreateForm] = useState<CategoryForm>({ name: '', description: '' });
+  const [createForm, setCreateForm] = useState<CategoryForm>({ name: '', nameRu: '', nameKaz: '', description: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<CategoryForm>({ name: '', description: '' });
+  const [editForm, setEditForm] = useState<CategoryForm>({ name: '', nameRu: '', nameKaz: '', description: '' });
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
 
   const load = async (): Promise<void> => {
@@ -66,11 +70,13 @@ export function CategoriesManager(): React.JSX.Element {
         method: 'POST',
         body: JSON.stringify({
           name: createForm.name.trim(),
+          nameRu: createForm.nameRu.trim() || null,
+          nameKaz: createForm.nameKaz.trim() || null,
           description: createForm.description.trim() || null
         })
       });
 
-      setCreateForm({ name: '', description: '' });
+      setCreateForm({ name: '', nameRu: '', nameKaz: '', description: '' });
       await load();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : language === 'kaz' ? 'Санатты құру мүмкін болмады' : 'Не удалось создать категорию');
@@ -83,6 +89,8 @@ export function CategoriesManager(): React.JSX.Element {
     setEditingId(category.id);
     setEditForm({
       name: category.name,
+      nameRu: category.nameRu ?? '',
+      nameKaz: category.nameKaz ?? '',
       description: category.description ?? ''
     });
   };
@@ -102,12 +110,14 @@ export function CategoriesManager(): React.JSX.Element {
         method: 'PATCH',
         body: JSON.stringify({
           name: editForm.name.trim(),
+          nameRu: editForm.nameRu.trim() || null,
+          nameKaz: editForm.nameKaz.trim() || null,
           description: editForm.description.trim() || null
         })
       });
 
       setEditingId(null);
-      setEditForm({ name: '', description: '' });
+      setEditForm({ name: '', nameRu: '', nameKaz: '', description: '' });
       await load();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : language === 'kaz' ? 'Санатты жаңарту мүмкін болмады' : 'Не удалось обновить категорию');
@@ -156,12 +166,24 @@ export function CategoriesManager(): React.JSX.Element {
         </button>
       </div>
 
-      <div className="card grid gap-3 p-4 md:grid-cols-[1fr_1fr_auto]">
+      <div className="card grid gap-3 p-4 md:grid-cols-[1fr_1fr_1fr_1fr_auto]">
         <input
           className="input"
           placeholder={language === 'kaz' ? 'Санат атауы' : 'Название категории'}
           value={createForm.name}
           onChange={(event) => setCreateForm((state) => ({ ...state, name: event.target.value }))}
+        />
+        <input
+          className="input"
+          placeholder={language === 'kaz' ? 'Орысша атауы' : 'Название на русском'}
+          value={createForm.nameRu}
+          onChange={(event) => setCreateForm((state) => ({ ...state, nameRu: event.target.value }))}
+        />
+        <input
+          className="input"
+          placeholder={language === 'kaz' ? 'Қазақша атауы' : 'Название на казахском'}
+          value={createForm.nameKaz}
+          onChange={(event) => setCreateForm((state) => ({ ...state, nameKaz: event.target.value }))}
         />
         <input
           className="input"
@@ -193,9 +215,13 @@ export function CategoriesManager(): React.JSX.Element {
                 <tr key={category.id} className="border-t border-slate-100 align-top">
                   <td className="px-3 py-2">
                     {isEditing ? (
-                      <input className="input" value={editForm.name} onChange={(event) => setEditForm((state) => ({ ...state, name: event.target.value }))} />
+                          <div className="grid gap-2">
+                            <input className="input" value={editForm.name} onChange={(event) => setEditForm((state) => ({ ...state, name: event.target.value }))} />
+                            <input className="input" value={editForm.nameRu} onChange={(event) => setEditForm((state) => ({ ...state, nameRu: event.target.value }))} />
+                            <input className="input" value={editForm.nameKaz} onChange={(event) => setEditForm((state) => ({ ...state, nameKaz: event.target.value }))} />
+                          </div>
                     ) : (
-                      category.name
+                      categoryLabel(category)
                     )}
                   </td>
                   <td className="px-3 py-2 text-slate-500">{category.slug}</td>
@@ -222,7 +248,7 @@ export function CategoriesManager(): React.JSX.Element {
                             className="btn btn-secondary"
                             onClick={() => {
                               setEditingId(null);
-                              setEditForm({ name: '', description: '' });
+                              setEditForm({ name: '', nameRu: '', nameKaz: '', description: '' });
                             }}
                             disabled={isBusy}
                           >
@@ -261,7 +287,9 @@ export function CategoriesManager(): React.JSX.Element {
           <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
             <h4 className="text-lg font-semibold text-slate-900">{language === 'kaz' ? 'Санатты жою' : 'Удаление категории'}</h4>
             <p className="mt-1 text-sm text-slate-600">
-              {language === 'kaz' ? `«${deleteCategory.name}» санатын жойғыңыз келе ме? Бұл әрекетті болдырмау мүмкін емес.` : `Удалить категорию «${deleteCategory.name}»? Это действие нельзя отменить.`}
+              {language === 'kaz'
+                ? `«${categoryLabel(deleteCategory)}» санатын жойғыңыз келе ме? Бұл әрекетті болдырмау мүмкін емес.`
+                : `Удалить категорию «${categoryLabel(deleteCategory)}»? Это действие нельзя отменить.`}
             </p>
 
             <div className="mt-4 flex items-center justify-end gap-2">

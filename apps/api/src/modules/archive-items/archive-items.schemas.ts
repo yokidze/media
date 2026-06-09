@@ -2,7 +2,8 @@
 
 const sortByValues = ['date', 'title', 'popularity', 'newest', 'relevance'] as const;
 const sortOrderValues = ['asc', 'desc'] as const;
-const contentSectionValues = ['ARTICLE', 'TV_STORY', 'EVENT_PHOTO'] as const;
+const contentSectionValues = ['ARTICLE', 'TV_STORY', 'EVENT_PHOTO', 'METHODICAL_AUTHOR_PROGRAM'] as const;
+const materialTypeValues = ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'] as const;
 
 export const listArchiveItemsSchema = z.object({
   query: z.object({
@@ -41,7 +42,7 @@ export const createArchiveItemSchema = z.object({
   body: z.object({
     title: z.string().min(2),
     description: z.string().min(10),
-    materialType: z.enum(['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER']),
+    materialType: z.enum(materialTypeValues),
     contentSection: z.enum(contentSectionValues).optional(),
     categoryId: z.string().uuid().nullable().optional(),
     authorId: z.string().uuid().nullable().optional(),

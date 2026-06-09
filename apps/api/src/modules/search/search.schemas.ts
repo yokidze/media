@@ -8,7 +8,7 @@ export const searchSchema = z.object({
     year: z.coerce.number().optional(),
     categoryId: z.string().uuid().optional(),
     materialType: z
-      .enum(['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'])
+      .enum(['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'])
       .optional()
   }),
   body: z.object({}).optional().default({}),

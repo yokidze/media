@@ -18,6 +18,7 @@ enum MaterialType {
   ARTICLE
   NEWSPAPER
   BOOKLET
+  UMKD
   IMAGE
   VIDEO
   AUDIO
@@ -29,6 +30,7 @@ enum ContentSection {
   ARTICLE
   TV_STORY
   EVENT_PHOTO
+  METHODICAL_AUTHOR_PROGRAM
 }
 
 enum AccessLevel {
@@ -138,6 +140,8 @@ model Author {
 model Category {
   id          String       @id @default(uuid())
   name        String
+  nameRu      String?
+  nameKaz     String?
   slug        String       @unique
   description String?
   sortOrder   Int          @default(0)

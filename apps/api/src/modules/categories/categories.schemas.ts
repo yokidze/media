@@ -12,6 +12,8 @@ export const listCategoriesSchema = z.object({
 export const createCategorySchema = z.object({
   body: z.object({
     name: z.string().min(2),
+    nameRu: z.string().min(2).nullable().optional(),
+    nameKaz: z.string().min(2).nullable().optional(),
     slug: z.string().min(2).optional(),
     description: z.string().optional(),
     parentId: z.string().uuid().nullable().optional(),
@@ -25,6 +27,8 @@ export const updateCategorySchema = z.object({
   params: z.object({ id: z.string().uuid() }),
   body: z.object({
     name: z.string().min(2).optional(),
+    nameRu: z.string().min(2).nullable().optional(),
+    nameKaz: z.string().min(2).nullable().optional(),
     slug: z.string().min(2).optional(),
     description: z.string().nullable().optional(),
     parentId: z.string().uuid().nullable().optional(),

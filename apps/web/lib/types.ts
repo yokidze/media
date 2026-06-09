@@ -1,10 +1,12 @@
 ﻿export type AccessLevel = 'PUBLIC' | 'STAFF_ONLY' | 'HIDDEN';
-export type MaterialType = 'DOCUMENT' | 'ARTICLE' | 'NEWSPAPER' | 'BOOKLET' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'SCAN' | 'OTHER';
-export type ContentSection = 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO';
+export type MaterialType = 'DOCUMENT' | 'ARTICLE' | 'NEWSPAPER' | 'BOOKLET' | 'UMKD' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'SCAN' | 'OTHER';
+export type ContentSection = 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO' | 'METHODICAL_AUTHOR_PROGRAM';
 
 export interface Category {
   id: string;
   name: string;
+  nameRu?: string | null;
+  nameKaz?: string | null;
   slug: string;
   description?: string | null;
   parentId?: string | null;
