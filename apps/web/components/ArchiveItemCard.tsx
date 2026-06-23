@@ -22,7 +22,7 @@ interface ArchiveItemCardProps {
 }
 
 const isMaterialType = (value: string): value is MaterialType => {
-  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
+  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'METHODICAL_RECOMMENDATION_PROGRAM', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
 };
 
 const friendlyManageError = (error: unknown, fallback: string, language: 'rus' | 'kaz'): string => {

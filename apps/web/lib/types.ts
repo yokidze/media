@@ -1,5 +1,16 @@
 ﻿export type AccessLevel = 'PUBLIC' | 'STAFF_ONLY' | 'HIDDEN';
-export type MaterialType = 'DOCUMENT' | 'ARTICLE' | 'NEWSPAPER' | 'BOOKLET' | 'UMKD' | 'IMAGE' | 'VIDEO' | 'AUDIO' | 'SCAN' | 'OTHER';
+export type MaterialType =
+  | 'DOCUMENT'
+  | 'ARTICLE'
+  | 'NEWSPAPER'
+  | 'BOOKLET'
+  | 'UMKD'
+  | 'METHODICAL_RECOMMENDATION_PROGRAM'
+  | 'IMAGE'
+  | 'VIDEO'
+  | 'AUDIO'
+  | 'SCAN'
+  | 'OTHER';
 export type ContentSection = 'ARTICLE' | 'TV_STORY' | 'EVENT_PHOTO' | 'METHODICAL_AUTHOR_PROGRAM';
 
 export interface Category {

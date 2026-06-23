@@ -12,7 +12,7 @@ const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD || 'adminpolytech';
 const resolveContentSection = (materialType: MaterialType): ContentSection => {
   if (materialType === MaterialType.VIDEO) return ContentSection.TV_STORY;
   if (materialType === MaterialType.IMAGE) return ContentSection.EVENT_PHOTO;
-  if (materialType === MaterialType.UMKD) return ContentSection.METHODICAL_AUTHOR_PROGRAM;
+  if (materialType === MaterialType.UMKD || materialType === MaterialType.METHODICAL_RECOMMENDATION_PROGRAM) return ContentSection.METHODICAL_AUTHOR_PROGRAM;
   return ContentSection.ARTICLE;
 };
 
@@ -104,6 +104,14 @@ async function main(): Promise<void> {
       slug: 'newspapers',
       description: 'Выпуски колледжной газеты',
       sortOrder: 3
+    },
+    {
+      name: 'Журнал',
+      nameRu: 'Журнал',
+      nameKaz: 'Журнал',
+      slug: 'journals',
+      description: 'Журналы и периодические издания колледжа',
+      sortOrder: 4
     },
     {
       name: 'Фотоархив',

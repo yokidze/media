@@ -21,7 +21,7 @@ export const parseContentSection = (value: string | null | undefined): ContentSe
 export const deriveContentSection = (materialType: MaterialType): ContentSection => {
   if (materialType === 'VIDEO') return ContentSection.TV_STORY;
   if (materialType === 'IMAGE') return ContentSection.EVENT_PHOTO;
-  if (materialType === 'UMKD') return ContentSection.METHODICAL_AUTHOR_PROGRAM;
+  if (materialType === 'UMKD' || materialType === 'METHODICAL_RECOMMENDATION_PROGRAM') return ContentSection.METHODICAL_AUTHOR_PROGRAM;
   return ContentSection.ARTICLE;
 };
 

@@ -9,14 +9,15 @@ import type { ArchiveItem, ContentSection } from '@/lib/types';
 
 type QuickLink =
   | { kind: 'section'; value: ContentSection }
-  | { kind: 'materialType'; value: 'UMKD' };
+  | { kind: 'materialType'; value: 'UMKD' | 'METHODICAL_RECOMMENDATION_PROGRAM' };
 
 const QUICK_LINKS: QuickLink[] = [
   { kind: 'section', value: 'ARTICLE' },
   { kind: 'section', value: 'TV_STORY' },
   { kind: 'section', value: 'EVENT_PHOTO' },
   { kind: 'section', value: 'METHODICAL_AUTHOR_PROGRAM' },
-  { kind: 'materialType', value: 'UMKD' }
+  { kind: 'materialType', value: 'UMKD' },
+  { kind: 'materialType', value: 'METHODICAL_RECOMMENDATION_PROGRAM' }
 ];
 
 function HeroQuickLinkIcon({ link }: { link: QuickLink }): React.JSX.Element {

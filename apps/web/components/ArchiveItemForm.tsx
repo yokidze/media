@@ -83,6 +83,24 @@ const friendlyError = (error: unknown, language: 'rus' | 'kaz'): string => {
       : 'Материал с таким названием уже существует. Уточните название и повторите сохранение.';
   }
 
+  if (message.includes('duplicate value')) {
+    return language === 'kaz'
+      ? 'Мұндай атаумен материал бұрыннан бар. Атауды нақтылап, қайта сақтаңыз.'
+      : 'Материал с таким названием уже существует. Уточните название и повторите сохранение.';
+  }
+
+  if (message.includes('unsupported file type')) {
+    return language === 'kaz'
+      ? 'Файл пішімдерінің бірі қолдау таппайды. PDF, DOCX, JPG, PNG, MP4, MP3, ZIP сияқты рұқсат етілген пішімді жүктеңіз.'
+      : 'Один из файлов имеет неподдерживаемый формат. Загрузите файл в допустимом формате: PDF, DOCX, JPG, PNG, MP4, MP3, ZIP и другие разрешённые типы.';
+  }
+
+  if (message.includes('file is too large')) {
+    return language === 'kaz'
+      ? 'Файлдардың бірі тым үлкен. Өлшемін кішірейтіп, қайта жүктеп көріңіз.'
+      : 'Один из файлов слишком большой. Уменьшите размер файла и попробуйте снова.';
+  }
+
   if (message.includes('forbidden')) {
     return language === 'kaz' ? 'Материал қосуға құқығыңыз жоқ.' : 'У вас нет прав на добавление материалов.';
   }
@@ -161,7 +179,7 @@ const composeTextContent = (values: FormValues, language: 'rus' | 'kaz', textBod
 };
 
 const isMaterialType = (value: string): value is MaterialType => {
-  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
+  return ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'METHODICAL_RECOMMENDATION_PROGRAM', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'].includes(value);
 };
 
 export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Element {

@@ -6,6 +6,7 @@ export type MaterialType =
   | 'NEWSPAPER'
   | 'BOOKLET'
   | 'UMKD'
+  | 'METHODICAL_RECOMMENDATION_PROGRAM'
   | 'IMAGE'
   | 'VIDEO'
   | 'AUDIO'

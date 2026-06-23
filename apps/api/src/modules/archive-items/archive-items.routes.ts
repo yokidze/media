@@ -119,6 +119,29 @@ const ensureCanManageItem = async (itemId: string, user: { id: string; roles: Ro
   }
 };
 
+const buildUniqueArchiveSlug = async (title: string, excludeId?: string): Promise<string> => {
+  const baseSlug = toSlug(title) || 'material';
+  let candidate = baseSlug;
+  let attempt = 1;
+
+  while (true) {
+    const existing = await prisma.archiveItem.findFirst({
+      where: {
+        slug: candidate,
+        ...(excludeId ? { id: { not: excludeId } } : {})
+      },
+      select: { id: true }
+    });
+
+    if (!existing) {
+      return candidate;
+    }
+
+    attempt += 1;
+    candidate = `${baseSlug}-${attempt}`;
+  }
+};
+
 archiveItemsRouter.get(
   '/',
   optionalAuth,
@@ -240,7 +263,7 @@ archiveItemsRouter.post(
   requireCsrf,
   validate(createArchiveItemSchema),
   asyncHandler(async (req, res) => {
-    const slug = toSlug(req.body.title);
+    const slug = await buildUniqueArchiveSlug(req.body.title);
 
     const item = await prisma.archiveItem.create({
       data: {
@@ -298,6 +321,7 @@ archiveItemsRouter.patch(
   asyncHandler(async (req, res) => {
     await ensureCanManageItem(req.params.id, req.user!);
     const { tags, ...updatePayload } = req.body;
+    const nextSlug = updatePayload.title ? await buildUniqueArchiveSlug(updatePayload.title, req.params.id) : undefined;
 
     const item = await prisma.$transaction(async (tx) => {
       const updated = await tx.archiveItem.update({
@@ -310,7 +334,7 @@ archiveItemsRouter.patch(
             : updatePayload.materialType
               ? resolveContentSection(null, updatePayload.materialType)
               : undefined,
-          slug: updatePayload.title ? toSlug(updatePayload.title) : undefined,
+          slug: nextSlug,
           updatedById: req.user?.id
         },
         include: includeConfig

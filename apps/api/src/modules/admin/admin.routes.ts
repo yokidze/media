@@ -30,7 +30,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 const auditService = new AuditService(prisma);
-const MATERIAL_TYPES = ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'] as const;
+const MATERIAL_TYPES = ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'METHODICAL_RECOMMENDATION_PROGRAM', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'] as const;
 const ACCESS_LEVELS = ['PUBLIC', 'STAFF_ONLY', 'HIDDEN'] as const;
 const STATUSES = ['DRAFT', 'PUBLISHED'] as const;
 const IMPORT_BATCH_SIZE = 100;

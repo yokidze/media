@@ -23,7 +23,11 @@ filtersRouter.get(
         distinct: ['archiveYear'],
         orderBy: { archiveYear: 'desc' }
       }),
-      prisma.category.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true, nameRu: true, nameKaz: true } }),
+      prisma.category.findMany({
+        where: { slug: { not: 'methodical-recommendations-author-programs' } },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, nameRu: true, nameKaz: true }
+      }),
       prisma.author.findMany({ orderBy: { fullName: 'asc' }, select: { id: true, fullName: true } }),
       prisma.tag.findMany({ orderBy: { name: 'asc' }, select: { id: true, name: true } }),
       prisma.archiveItem.findMany({
@@ -61,7 +65,7 @@ filtersRouter.get(
       formats: formats.map((row) => row.extension),
       letters: letters.map((row) => row.alphabetLetter).filter((letter): letter is string => typeof letter === 'string'),
       accessLevels: ['PUBLIC', 'STAFF_ONLY', 'HIDDEN'],
-      materialTypes: ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'],
+      materialTypes: ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'METHODICAL_RECOMMENDATION_PROGRAM', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'],
       sections: [...CONTENT_SECTIONS],
       sectionCounts
     };

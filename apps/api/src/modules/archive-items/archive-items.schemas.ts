@@ -3,7 +3,7 @@
 const sortByValues = ['date', 'title', 'popularity', 'newest', 'relevance'] as const;
 const sortOrderValues = ['asc', 'desc'] as const;
 const contentSectionValues = ['ARTICLE', 'TV_STORY', 'EVENT_PHOTO', 'METHODICAL_AUTHOR_PROGRAM'] as const;
-const materialTypeValues = ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'] as const;
+const materialTypeValues = ['DOCUMENT', 'ARTICLE', 'NEWSPAPER', 'BOOKLET', 'UMKD', 'METHODICAL_RECOMMENDATION_PROGRAM', 'IMAGE', 'VIDEO', 'AUDIO', 'SCAN', 'OTHER'] as const;
 
 export const listArchiveItemsSchema = z.object({
   query: z.object({

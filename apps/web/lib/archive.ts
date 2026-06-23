@@ -15,6 +15,7 @@ export const MATERIAL_TYPE_LABELS: Record<MaterialType, string> = {
   NEWSPAPER: 'Газета',
   BOOKLET: 'Буклет',
   UMKD: 'Учебно-методический комплекс дисциплины',
+  METHODICAL_RECOMMENDATION_PROGRAM: 'Методические рекомендации и авторские программы',
   IMAGE: 'Фото',
   VIDEO: 'Видео',
   AUDIO: 'Аудио',
@@ -25,7 +26,7 @@ export const MATERIAL_TYPE_LABELS: Record<MaterialType, string> = {
 export const toSectionFromMaterialType = (materialType: MaterialType): ContentSection => {
   if (materialType === 'VIDEO') return 'TV_STORY';
   if (materialType === 'IMAGE') return 'EVENT_PHOTO';
-  if (materialType === 'UMKD') return 'METHODICAL_AUTHOR_PROGRAM';
+  if (materialType === 'UMKD' || materialType === 'METHODICAL_RECOMMENDATION_PROGRAM') return 'METHODICAL_AUTHOR_PROGRAM';
   return 'ARTICLE';
 };
 
