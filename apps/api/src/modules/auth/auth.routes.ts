@@ -17,6 +17,7 @@ import { badRequest } from '../../common/errors.js';
 import { getStorageService } from '../../services/storage/index.js';
 import { normalizeStorageRelativePath } from '../../services/storage/path-safety.js';
 import { toUserMirrorUpdateData, upsertProfileMirror } from '../../services/user-profile-sync.service.js';
+import { filterValidMaterials } from '../../services/material-integrity.service.js';
 
 const authService = new AuthService(prisma);
 const auditService = new AuditService(prisma);
@@ -591,8 +592,15 @@ authRouter.get(
       take: 50
     });
 
-    res.json(
+    const validItems = await filterValidMaterials(
       items.map((item) => ({
+        ...item,
+        files: item.files.map((file) => ({ ...file, relativePath: file.relativePath }))
+      }))
+    );
+
+    res.json(
+      validItems.map((item) => ({
         id: item.id,
         slug: item.slug,
         title: item.title,

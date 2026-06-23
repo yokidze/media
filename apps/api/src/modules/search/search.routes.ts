@@ -5,6 +5,7 @@ import { parsePagination } from '../../common/query.js';
 import { validate } from '../../middleware/validate.js';
 import { optionalAuth } from '../../middleware/auth.js';
 import { autocompleteSchema, searchSchema, suggestionsSchema } from './search.schemas.js';
+import { filterValidMaterials } from '../../services/material-integrity.service.js';
 
 export const searchRouter = Router();
 
@@ -43,8 +44,6 @@ searchRouter.get(
       conditions.push(`ai."materialType" = $${params.length}::"MaterialType"`);
     }
 
-    params.push(skip, pageSize);
-
     const query = `
       SELECT
         ai."id",
@@ -64,9 +63,7 @@ searchRouter.get(
       FROM "ArchiveItem" ai
       WHERE ${conditions.join(' AND ')}
         AND ai."searchVector" @@ websearch_to_tsquery('simple', $1)
-      ORDER BY rank DESC, ai."viewsCount" DESC
-      OFFSET $${params.length - 1}
-      LIMIT $${params.length};
+      ORDER BY rank DESC, ai."viewsCount" DESC;
     `;
 
     const rows = await prisma.$queryRawUnsafe<
@@ -87,10 +84,28 @@ searchRouter.get(
       }>
     >(query, ...params);
 
-    const total = rows[0] ? Number(rows[0].total_count) : 0;
+    let filteredRows = rows;
+
+    if (!isAdmin) {
+      const visibilityMeta = await prisma.archiveItem.findMany({
+        where: { id: { in: rows.map((row) => row.id) } },
+        select: {
+          id: true,
+          textContent: true,
+          files: { select: { relativePath: true } }
+        }
+      });
+
+      const validMeta = await filterValidMaterials(visibilityMeta);
+      const validIds = new Set(validMeta.map((entry) => entry.id));
+      filteredRows = rows.filter((row) => validIds.has(row.id));
+    }
+
+    const total = filteredRows.length;
+    const pagedRows = filteredRows.slice(skip, skip + pageSize);
 
     res.json({
-      data: rows.map((row) => ({
+      data: pagedRows.map((row) => ({
         id: row.id,
         slug: row.slug,
         title: row.title,
@@ -146,13 +161,18 @@ searchRouter.get(
         ...baseWhere,
         title: { startsWith: q, mode: 'insensitive' }
       },
-      select: itemSelect,
+      select: {
+        ...itemSelect,
+        textContent: true,
+        files: { select: { relativePath: true } }
+      },
       orderBy: [{ viewsCount: 'desc' }, { publicationDate: 'desc' }],
-      take: limit
+      take: limit * 3
     });
 
-    const seen = new Set(startedWithTitle.map((item) => item.id));
-    const remainingAfterStarts = limit - startedWithTitle.length;
+    const validStarted = isAdmin ? startedWithTitle : await filterValidMaterials(startedWithTitle);
+    const seen = new Set(validStarted.map((item) => item.id));
+    const remainingAfterStarts = limit - validStarted.length;
 
     const titleContains = remainingAfterStarts > 0
       ? await prisma.archiveItem.findMany({
@@ -161,15 +181,20 @@ searchRouter.get(
             id: { notIn: Array.from(seen) },
             title: { contains: q, mode: 'insensitive' }
           },
-          select: itemSelect,
+          select: {
+            ...itemSelect,
+            textContent: true,
+            files: { select: { relativePath: true } }
+          },
           orderBy: [{ viewsCount: 'desc' }, { publicationDate: 'desc' }],
-          take: remainingAfterStarts
+          take: remainingAfterStarts * 3
         })
       : [];
 
-    titleContains.forEach((item) => seen.add(item.id));
+    const validTitleContains = isAdmin ? titleContains : await filterValidMaterials(titleContains);
+    validTitleContains.forEach((item) => seen.add(item.id));
 
-    const remainingAfterTitle = limit - startedWithTitle.length - titleContains.length;
+    const remainingAfterTitle = limit - validStarted.length - validTitleContains.length;
 
     const extendedMatches = remainingAfterTitle > 0
       ? await prisma.archiveItem.findMany({
@@ -182,13 +207,20 @@ searchRouter.get(
               { author: { is: { fullName: { contains: q, mode: 'insensitive' } } } }
             ]
           },
-          select: itemSelect,
+          select: {
+            ...itemSelect,
+            textContent: true,
+            files: { select: { relativePath: true } }
+          },
           orderBy: [{ viewsCount: 'desc' }, { publicationDate: 'desc' }],
-          take: remainingAfterTitle
+          take: remainingAfterTitle * 3
         })
       : [];
 
-    const rows = [...startedWithTitle, ...titleContains, ...extendedMatches];
+    const validExtendedMatches = isAdmin ? extendedMatches : await filterValidMaterials(extendedMatches);
+    const rows = [...validStarted, ...validTitleContains, ...validExtendedMatches]
+      .slice(0, limit)
+      .map(({ textContent: _textContent, files: _files, ...item }) => item);
 
     res.json({
       query: q,

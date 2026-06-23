@@ -2,6 +2,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { asyncHandler } from '../../common/async-handler.js';
 import { requireAuth } from '../../middleware/auth.js';
+import { filterValidMaterials } from '../../services/material-integrity.service.js';
 
 export const historyRouter = Router();
 
@@ -23,6 +24,16 @@ historyRouter.get(
       }
     });
 
-    res.json(history);
+    const validArchiveItems = await filterValidMaterials(
+      history
+        .filter((entry) => entry.archiveItem && !entry.archiveItem.deletedAt)
+        .map((entry) => ({
+          ...entry.archiveItem,
+          files: entry.archiveItem.files.map((file) => ({ ...file, relativePath: file.relativePath }))
+        }))
+    );
+
+    const validIds = new Set(validArchiveItems.map((item) => item.id));
+    res.json(history.filter((entry) => entry.archiveItem && validIds.has(entry.archiveItem.id)));
   })
 );

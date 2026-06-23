@@ -21,6 +21,7 @@ import { toSlug } from '../../common/slug.js';
 import { parseContentSection, resolveContentSection } from '../archive-items/archive-sections.js';
 import { clearFiltersOptionsCache } from '../filters/filters-cache.js';
 import { badRequest } from '../../common/errors.js';
+import { getMaterialIntegritySummary } from '../../services/material-integrity.service.js';
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -134,9 +135,7 @@ adminRouter.get(
     const [
       usersTotal,
       usersActive,
-      materialsTotal,
-      publishedMaterials,
-      draftMaterials,
+      integrity,
       categoriesTotal,
       tagsTotal,
       auditLogsToday,
@@ -144,9 +143,7 @@ adminRouter.get(
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { isActive: true } }),
-      prisma.archiveItem.count({ where: { deletedAt: null } }),
-      prisma.archiveItem.count({ where: { deletedAt: null, status: 'PUBLISHED' } }),
-      prisma.archiveItem.count({ where: { deletedAt: null, status: 'DRAFT' } }),
+      getMaterialIntegritySummary(),
       prisma.category.count(),
       prisma.tag.count(),
       prisma.auditLog.count({
@@ -168,9 +165,9 @@ adminRouter.get(
         users: usersTotal,
         usersActive,
         usersBlocked: usersTotal - usersActive,
-        materials: materialsTotal,
-        publishedMaterials,
-        draftMaterials,
+        materials: integrity.totalMaterials,
+        publishedMaterials: integrity.publishedMaterials,
+        draftMaterials: integrity.draftMaterials,
         categories: categoriesTotal,
         tags: tagsTotal,
         auditLogsToday

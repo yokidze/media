@@ -22,6 +22,7 @@ import { forbidden, notFound } from '../../common/errors.js';
 import { toSlug } from '../../common/slug.js';
 import { resolveContentSection } from './archive-sections.js';
 import { clearFiltersOptionsCache } from '../filters/filters-cache.js';
+import { filterValidMaterials } from '../../services/material-integrity.service.js';
 
 const auditService = new AuditService(prisma);
 
@@ -161,19 +162,73 @@ archiveItemsRouter.get(
       (where.AND as any[]).push({ status: ArchiveStatus.PUBLISHED });
     }
 
-    const [total, items] = await prisma.$transaction([
-      prisma.archiveItem.count({ where }),
-      prisma.archiveItem.findMany({
+    const orderBy = buildOrderBy(
+      typeof req.query.sortBy === 'string' ? req.query.sortBy : undefined,
+      req.query.sortOrder === 'asc' ? 'asc' : 'desc'
+    );
+
+    let total = 0;
+    let items:
+      | Array<{
+          id: string;
+          slug: string;
+          title: string;
+          description: string;
+          materialType: string;
+          contentSection: string;
+          accessLevel: string;
+          status: string;
+          publicationDate: Date | null;
+          archiveYear: number | null;
+          issueNumber: string | null;
+          language: string;
+          keywords: string[];
+          viewsCount: number;
+          downloadsCount: number;
+          createdAt: Date;
+          category: any;
+          author: any;
+          tags: Array<{ tag: any }>;
+          files: Array<any>;
+        }>
+      = [];
+
+    if (isAdmin) {
+      [total, items] = await prisma.$transaction([
+        prisma.archiveItem.count({ where }),
+        prisma.archiveItem.findMany({
+          where,
+          select: listSelect,
+          skip,
+          take: pageSize,
+          orderBy
+        })
+      ]);
+    } else {
+      const candidates = await prisma.archiveItem.findMany({
         where,
-        select: listSelect,
-        skip,
-        take: pageSize,
-        orderBy: buildOrderBy(
-          typeof req.query.sortBy === 'string' ? req.query.sortBy : undefined,
-          req.query.sortOrder === 'asc' ? 'asc' : 'desc'
-        )
-      })
-    ]);
+        orderBy,
+        select: {
+          id: true,
+          textContent: true,
+          files: { select: { relativePath: true } }
+        }
+      });
+
+      const validCandidates = await filterValidMaterials(candidates);
+      const pageIds = validCandidates.slice(skip, skip + pageSize).map((item) => item.id);
+      total = validCandidates.length;
+
+      const pageItems = pageIds.length
+        ? await prisma.archiveItem.findMany({
+            where: { id: { in: pageIds } },
+            select: listSelect
+          })
+        : [];
+
+      const orderMap = new Map(pageIds.map((id, index) => [id, index]));
+      items = pageItems.sort((a, b) => (orderMap.get(a.id) ?? 0) - (orderMap.get(b.id) ?? 0));
+    }
 
     res.json(
       paginated(
@@ -218,6 +273,20 @@ archiveItemsRouter.get(
       throw forbidden('Draft is visible only for admin users');
     }
 
+    if (!req.user?.roles.includes('ADMIN')) {
+      const [validItem] = await filterValidMaterials([
+        {
+          id: item.id,
+          textContent: item.textContent,
+          files: item.files.map((file) => ({ relativePath: file.relativePath }))
+        }
+      ]);
+
+      if (!validItem) {
+        throw notFound('Archive item not found');
+      }
+    }
+
     await prisma.$transaction([
       prisma.archiveItem.update({ where: { id: item.id }, data: { viewsCount: { increment: 1 } } }),
       prisma.viewHistory.create({
@@ -229,7 +298,7 @@ archiveItemsRouter.get(
       })
     ]);
 
-    const recommendations = await prisma.archiveItem.findMany({
+    const recommendationsRaw = await prisma.archiveItem.findMany({
       where: {
         id: { not: item.id },
         status: 'PUBLISHED',
@@ -247,6 +316,13 @@ archiveItemsRouter.get(
         category: true
       }
     });
+
+    const recommendations = await filterValidMaterials(
+      recommendationsRaw.map((entry) => ({
+        ...entry,
+        files: entry.files.map((file) => ({ ...file, relativePath: file.relativePath }))
+      }))
+    );
 
     res.json({
       ...item,

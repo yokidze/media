@@ -5,6 +5,7 @@ import { requireAuth } from '../../middleware/auth.js';
 import { requireCsrf } from '../../middleware/csrf.js';
 import { validate } from '../../middleware/validate.js';
 import { favoriteIdSchema, favoriteSchema } from './favorites.schemas.js';
+import { filterValidMaterials } from '../../services/material-integrity.service.js';
 
 export const favoritesRouter = Router();
 
@@ -25,7 +26,17 @@ favoritesRouter.get(
       }
     });
 
-    res.json(favorites);
+    const validArchiveItems = await filterValidMaterials(
+      favorites
+        .filter((favorite) => favorite.archiveItem && !favorite.archiveItem.deletedAt)
+        .map((favorite) => ({
+          ...favorite.archiveItem,
+          files: favorite.archiveItem.files.map((file) => ({ ...file, relativePath: file.relativePath }))
+        }))
+    );
+
+    const validIds = new Set(validArchiveItems.map((item) => item.id));
+    res.json(favorites.filter((favorite) => favorite.archiveItem && validIds.has(favorite.archiveItem.id)));
   })
 );
 
