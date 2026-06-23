@@ -41,7 +41,7 @@ export const archiveItemByIdSchema = z.object({
 export const createArchiveItemSchema = z.object({
   body: z.object({
     title: z.string().min(2),
-    description: z.string().min(10),
+    description: z.string().trim().max(2000).optional().default(''),
     materialType: z.enum(materialTypeValues),
     contentSection: z.enum(contentSectionValues).optional(),
     categoryId: z.string().uuid().nullable().optional(),

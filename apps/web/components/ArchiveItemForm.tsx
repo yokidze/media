@@ -25,7 +25,6 @@ const buildFormSchema = (language: 'rus' | 'kaz') =>
     description: z
       .string()
       .trim()
-      .min(10, language === 'kaz' ? 'Қысқаша сипаттама қосыңыз (кемі 10 таңба).' : 'Добавьте краткое описание (минимум 10 символов).')
       .max(2000, language === 'kaz' ? 'Сипаттама тым ұзын.' : 'Описание слишком длинное.'),
     publicationDate: z.string().min(1, language === 'kaz' ? 'Жариялану күнін көрсетіңіз.' : 'Укажите дату публикации.'),
     teacherName: z.string().trim().max(120, language === 'kaz' ? 'Оқытушының аты тым ұзын.' : 'Слишком длинное имя преподавателя.').optional(),
@@ -395,14 +394,14 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
 
         <div className="textarea-shell">
           <label className="mb-1 block text-sm font-medium">
-            {language === 'kaz' ? 'Сипаттама' : 'Описание'} <span className="text-red-600">*</span>
+            {language === 'kaz' ? 'Сипаттама' : 'Описание'}
           </label>
           <textarea
             className="input textarea-field min-h-[140px]"
-            placeholder={language === 'kaz' ? 'Материал мазмұнын қысқаша сипаттаңыз.' : 'Кратко опишите содержание материала.'}
+            placeholder={language === 'kaz' ? 'Қалауыңыз бойынша материал мазмұнын қысқаша сипаттаңыз.' : 'При желании кратко опишите содержание материала.'}
             {...register('description')}
           />
-          <p className="mt-1 text-xs text-slate-500">{language === 'kaz' ? '2-4 сөйлем: материал не туралы және кімге пайдалы.' : '2-4 предложения: о чём материал и кому он полезен.'}</p>
+          <p className="mt-1 text-xs text-slate-500">{language === 'kaz' ? 'Бұл өрісті бос қалдыруға болады.' : 'Это поле можно оставить пустым.'}</p>
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>
 

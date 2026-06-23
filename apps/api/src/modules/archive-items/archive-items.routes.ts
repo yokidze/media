@@ -246,7 +246,7 @@ archiveItemsRouter.post(
       data: {
         title: req.body.title,
         slug,
-        description: req.body.description,
+        description: req.body.description ?? '',
         materialType: req.body.materialType,
         contentSection: resolveContentSection(req.body.contentSection, req.body.materialType),
         categoryId: req.body.categoryId,

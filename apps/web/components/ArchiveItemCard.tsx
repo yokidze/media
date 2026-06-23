@@ -95,7 +95,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
   };
 
   const canSubmit = useMemo(() => {
-    return title.trim().length >= 2 && description.trim().length >= 10;
+    return title.trim().length >= 2 && description.trim().length <= 2000;
   }, [title, description]);
 
   const submitEdit = async (): Promise<void> => {
@@ -107,7 +107,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
       return;
     }
 
-    if (nextDescription.length < 10) {
+    if (nextDescription.length > 2000) {
       setError(t('cardManageValidationDescription'));
       return;
     }
@@ -259,7 +259,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
             </Link>
           </h3>
 
-          <p className="mt-2 line-clamp-3 text-sm text-slate-600">{item.description}</p>
+          {item.description && <p className="mt-2 line-clamp-3 text-sm text-slate-600">{item.description}</p>}
 
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500">
             <span>
