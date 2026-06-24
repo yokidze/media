@@ -46,6 +46,7 @@ export const createArchiveItemSchema = z.object({
     contentSection: z.enum(contentSectionValues).optional(),
     categoryId: z.string().uuid().nullable().optional(),
     authorId: z.string().uuid().nullable().optional(),
+    authorName: z.string().trim().max(120).nullable().optional(),
     publicationDate: z.string().datetime().nullable().optional(),
     language: z.string().min(2).default('ru'),
     tags: z.array(z.string().uuid()).optional().default([]),

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
+import { extractAuthorNameFromTextContent } from '@/lib/archive-authors';
 import { formatDate, formatBytes } from '@/lib/utils';
 import type { ContentSection, MaterialType } from '@/lib/types';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -140,6 +141,7 @@ export default function ArchiveItemDetailPage(): React.JSX.Element {
   const primaryFile = item.files.find((file) => file.isPrimary) ?? item.files[0];
   const externalUrl = parseExternalUrlFromTextContent(item.textContent);
   const youtubeEmbedUrl = externalUrl ? toYouTubeEmbedUrl(externalUrl) : null;
+  const authorName = item.author?.fullName ?? extractAuthorNameFromTextContent(item.textContent);
 
   return (
     <div className="container-shell py-10">
@@ -161,7 +163,7 @@ export default function ArchiveItemDetailPage(): React.JSX.Element {
           <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
             <div>
               <dt className="text-slate-500">{language === 'kaz' ? 'Автор' : 'Автор'}</dt>
-              <dd className="font-medium text-slate-800">{item.author?.fullName ?? (language === 'kaz' ? 'Көрсетілмеген' : 'Не указан')}</dd>
+              <dd className="font-medium text-slate-800">{authorName ?? (language === 'kaz' ? 'Көрсетілмеген' : 'Не указан')}</dd>
             </div>
             <div>
               <dt className="text-slate-500">{language === 'kaz' ? 'Санат' : 'Категория'}</dt>

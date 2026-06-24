@@ -7,6 +7,7 @@ import { DatePickerInput } from '@/components/DatePickerInput';
 import { StyledSelect } from '@/components/StyledSelect';
 import { apiFetch } from '@/lib/api';
 import { toSectionFromMaterialType } from '@/lib/archive';
+import { extractAuthorNameFromTextContent } from '@/lib/archive-authors';
 import type { ArchiveItem, MaterialType } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 import { useLanguage } from '@/components/LanguageProvider';
@@ -69,6 +70,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
 
   const categories = editableOptions?.categories ?? [];
   const materialTypes = editableOptions?.materialTypes ?? [];
+  const authorName = item.author?.fullName ?? extractAuthorNameFromTextContent(item.textContent) ?? null;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -277,7 +279,7 @@ export function ArchiveItemCard({ item, canManage = false, editableOptions }: Ar
           </div>
 
           <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-slate-500">{item.author?.fullName ?? t('cardAuthorUnknown')}</span>
+            <span className="text-xs text-slate-500">{authorName ?? t('cardAuthorUnknown')}</span>
             {primary ? (
               <Link href={withClientApiPath(`/files/${primary.id}/download`)} className="text-sm font-semibold text-brand-700 hover:text-brand-800">
                 {t('cardDownload')}

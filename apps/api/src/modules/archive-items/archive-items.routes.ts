@@ -23,6 +23,7 @@ import { toSlug } from '../../common/slug.js';
 import { resolveContentSection } from './archive-sections.js';
 import { clearFiltersOptionsCache } from '../filters/filters-cache.js';
 import { filterValidMaterials } from '../../services/material-integrity.service.js';
+import { resolveAuthorId } from '../../services/author.service.js';
 
 const auditService = new AuditService(prisma);
 
@@ -49,6 +50,7 @@ const listSelect = {
   issueNumber: true,
   language: true,
   keywords: true,
+  textContent: true,
   viewsCount: true,
   downloadsCount: true,
   createdAt: true,
@@ -340,6 +342,9 @@ archiveItemsRouter.post(
   validate(createArchiveItemSchema),
   asyncHandler(async (req, res) => {
     const slug = await buildUniqueArchiveSlug(req.body.title);
+    const authorId = req.body.authorName !== undefined
+      ? await resolveAuthorId(prisma, req.body.authorName)
+      : req.body.authorId;
 
     const item = await prisma.archiveItem.create({
       data: {
@@ -349,7 +354,7 @@ archiveItemsRouter.post(
         materialType: req.body.materialType,
         contentSection: resolveContentSection(req.body.contentSection, req.body.materialType),
         categoryId: req.body.categoryId,
-        authorId: req.body.authorId,
+        authorId,
         publicationDate: req.body.publicationDate ? new Date(req.body.publicationDate) : null,
         language: req.body.language,
         keywords: req.body.keywords,
@@ -396,10 +401,14 @@ archiveItemsRouter.patch(
   validate(updateArchiveItemSchema),
   asyncHandler(async (req, res) => {
     await ensureCanManageItem(req.params.id, req.user!);
-    const { tags, ...updatePayload } = req.body;
+    const { tags, authorName, authorId: requestedAuthorId, ...updatePayload } = req.body;
     const nextSlug = updatePayload.title ? await buildUniqueArchiveSlug(updatePayload.title, req.params.id) : undefined;
 
     const item = await prisma.$transaction(async (tx) => {
+      const authorId = authorName !== undefined
+        ? await resolveAuthorId(tx, authorName)
+        : requestedAuthorId;
+
       const updated = await tx.archiveItem.update({
         where: { id: req.params.id },
         data: {
@@ -410,6 +419,7 @@ archiveItemsRouter.patch(
             : updatePayload.materialType
               ? resolveContentSection(null, updatePayload.materialType)
               : undefined,
+          authorId,
           slug: nextSlug,
           updatedById: req.user?.id
         },

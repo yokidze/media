@@ -12,6 +12,7 @@ import { StyledSelect } from '@/components/StyledSelect';
 import type { ArchiveItem, MaterialType } from '@/lib/types';
 import { toSectionFromMaterialType } from '@/lib/archive';
 import { useLanguage } from '@/components/LanguageProvider';
+import { extractAuthorNameFromTextContent } from '@/lib/archive-authors';
 
 const buildFormSchema = (language: 'rus' | 'kaz') =>
   z.object({
@@ -253,7 +254,7 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
         setValue('description', item.description);
         setValue('publicationDate', item.publicationDate ? item.publicationDate.slice(0, 10) : '');
         setValue('externalUrl', meta.externalUrl);
-        if (meta.teacherName) setValue('teacherName', meta.teacherName);
+        setValue('teacherName', item.author?.fullName ?? meta.teacherName ?? extractAuthorNameFromTextContent(item.textContent) ?? '');
         if (meta.departmentName) setValue('departmentName', meta.departmentName);
 
         setExistingMeta({
@@ -304,6 +305,7 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
         materialType: formValues.materialType,
         contentSection: toSectionFromMaterialType(formValues.materialType),
         categoryId: formValues.categoryId,
+        authorName: formValues.teacherName?.trim() || null,
         publicationDate: publicationDate.toISOString(),
         language: existingMeta?.language ?? 'ru',
         archiveYear,
