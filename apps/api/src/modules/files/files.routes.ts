@@ -7,7 +7,7 @@ import { requireRoles } from '../../middleware/rbac.js';
 import { requireCsrf } from '../../middleware/csrf.js';
 import { validate } from '../../middleware/validate.js';
 import { fileIdSchema, uploadFilesSchema } from './files.schemas.js';
-import { extensionFromName, validateUploadMime } from '../../services/file-utils.js';
+import { extensionFromName, normalizeUploadedFileName, validateUploadMime } from '../../services/file-utils.js';
 import { getStorageService } from '../../services/storage/index.js';
 import { PreviewService } from '../../services/preview.service.js';
 import { AuditService } from '../../services/audit.service.js';
@@ -78,14 +78,15 @@ archiveItemFilesRouter.post(
     const created = [];
     for (const [index, file] of files.entries()) {
       validateUploadMime(file.mimetype);
-      const extension = extensionFromName(file.originalname);
+      const originalName = normalizeUploadedFileName(file.originalname);
+      const extension = extensionFromName(originalName);
       const folder = `${new Date().getFullYear()}/${item.id}`;
       const saved = await storage.save({
         buffer: file.buffer,
         folder,
         extension,
         mimeType: file.mimetype,
-        originalName: file.originalname
+        originalName
       });
 
       let previewPath: string | null = null;
@@ -101,7 +102,7 @@ archiveItemFilesRouter.post(
         data: {
           archiveItemId: item.id,
           fileName: saved.fileName,
-          originalName: file.originalname,
+          originalName,
           relativePath: saved.relativePath,
           mimeType: file.mimetype,
           extension,

@@ -24,6 +24,7 @@ import { resolveContentSection } from './archive-sections.js';
 import { clearFiltersOptionsCache } from '../filters/filters-cache.js';
 import { filterValidMaterials } from '../../services/material-integrity.service.js';
 import { resolveAuthorId } from '../../services/author.service.js';
+import { normalizeUploadedFileName } from '../../services/file-utils.js';
 
 const auditService = new AuditService(prisma);
 
@@ -32,6 +33,7 @@ export const archiveItemsRouter = Router();
 const includeConfig = {
   category: true,
   author: true,
+  createdBy: { select: { id: true, fullName: true } },
   tags: { include: { tag: true } },
   files: { orderBy: [{ isPrimary: 'desc' as const }, { sortOrder: 'asc' as const }, { createdAt: 'desc' as const }] }
 };
@@ -71,6 +73,12 @@ const listSelect = {
       fullName: true
     }
   },
+  createdBy: {
+    select: {
+      id: true,
+      fullName: true
+    }
+  },
   tags: {
     select: {
       tag: {
@@ -102,6 +110,24 @@ const canAccessItem = (roles: RoleName[] | undefined, accessLevel: 'PUBLIC' | 'S
   if (accessLevel === 'PUBLIC') return true;
   if (accessLevel === 'STAFF_ONLY') return roles?.includes('STAFF') || roles?.includes('ADMIN') || false;
   return roles?.includes('ADMIN') || false;
+};
+
+const normalizeArchiveFile = <T extends { originalName: string }>(file: T): T => ({
+  ...file,
+  originalName: normalizeUploadedFileName(file.originalName)
+});
+
+const authorFromItem = (item: { author?: { id: string; fullName: string } | null; createdBy?: { id: string; fullName: string } | null }) =>
+  item.author ?? (item.createdBy ? { id: item.createdBy.id, fullName: item.createdBy.fullName } : null);
+
+const serializeArchiveItem = <T extends { author?: any; createdBy?: any; tags: Array<{ tag: any }>; files: Array<{ originalName: string }> }>(item: T) => {
+  const { createdBy: _createdBy, ...rest } = item;
+  return {
+    ...rest,
+    author: authorFromItem(item),
+    tags: item.tags.map((entry) => entry.tag),
+    files: item.files.map((file) => normalizeArchiveFile(file))
+  };
 };
 
 const ensureCanManageItem = async (itemId: string, user: { id: string; roles: RoleName[] }): Promise<void> => {
@@ -187,9 +213,11 @@ archiveItemsRouter.get(
           keywords: string[];
           viewsCount: number;
           downloadsCount: number;
+          textContent: string | null;
           createdAt: Date;
           category: any;
           author: any;
+          createdBy: any;
           tags: Array<{ tag: any }>;
           files: Array<any>;
         }>
@@ -234,10 +262,7 @@ archiveItemsRouter.get(
 
     res.json(
       paginated(
-        items.map((item) => ({
-          ...item,
-          tags: item.tags.map((entry) => entry.tag)
-        })),
+        items.map((item) => serializeArchiveItem(item)),
         {
           page,
           pageSize,
@@ -327,8 +352,7 @@ archiveItemsRouter.get(
     );
 
     res.json({
-      ...item,
-      tags: item.tags.map((entry) => entry.tag),
+      ...serializeArchiveItem(item),
       recommendations
     });
   })
@@ -387,8 +411,7 @@ archiveItemsRouter.post(
     clearFiltersOptionsCache();
 
     res.status(201).json({
-      ...item,
-      tags: item.tags.map((entry) => entry.tag)
+      ...serializeArchiveItem(item)
     });
   })
 );
@@ -450,8 +473,7 @@ archiveItemsRouter.patch(
     const reloaded = await prisma.archiveItem.findUnique({ where: { id: item.id }, include: includeConfig });
 
     res.json({
-      ...reloaded,
-      tags: reloaded?.tags.map((entry) => entry.tag)
+      ...(reloaded ? serializeArchiveItem(reloaded) : reloaded)
     });
   })
 );
