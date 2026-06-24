@@ -35,7 +35,7 @@ filtersRouter.get(
       }),
       prisma.category.findMany({
         where: { slug: { not: 'methodical-recommendations-author-programs' } },
-        orderBy: { name: 'asc' },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
         select: { id: true, name: true, nameRu: true, nameKaz: true }
       })
     ]);

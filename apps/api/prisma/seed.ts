@@ -119,7 +119,7 @@ async function main(): Promise<void> {
       nameKaz: 'Фотоархив',
       slug: 'photo-archive',
       description: 'Фотографии мероприятий и истории колледжа',
-      sortOrder: 4
+      sortOrder: 5
     },
     {
       name: 'Видеоархив',
@@ -127,7 +127,7 @@ async function main(): Promise<void> {
       nameKaz: 'Бейнеархив',
       slug: 'video-archive',
       description: 'Видео материалов и событий',
-      sortOrder: 5
+      sortOrder: 6
     }
   ];
 
