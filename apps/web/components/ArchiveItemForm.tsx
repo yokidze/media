@@ -194,6 +194,7 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [canCreate, setCanCreate] = useState<boolean | null>(null);
   const [options, setOptions] = useState<FormOptionsResponse | null>(null);
+  const [currentRoles, setCurrentRoles] = useState<string[]>([]);
 
   const {
     control,
@@ -224,6 +225,7 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
         const roles = Array.isArray(me.roles) ? me.roles : [];
         const allowed = roles.includes('STAFF') || roles.includes('ADMIN');
 
+        setCurrentRoles(roles);
         setCanCreate(allowed);
         setOptions({
           categories: loadedOptions.categories ?? [],
@@ -333,7 +335,7 @@ export function ArchiveItemForm({ itemId }: ArchiveItemFormProps): React.JSX.Ele
         });
       }
 
-      router.push('/admin/items');
+      router.push(currentRoles.includes('ADMIN') ? '/admin/items' : '/archive');
       router.refresh();
     } catch (requestError) {
       setError(friendlyError(requestError, language));
